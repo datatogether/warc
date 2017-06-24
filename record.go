@@ -18,72 +18,166 @@ type Records []Record
 // records.
 type Record interface {
 	Type() RecordType
-	Id() string
-	Date() time.Time
-	Header() *Header
-	ContentLength() int64
+	// Id() string
+	// Date() time.Time
+	// Header() *Header
+	// ContentLength() int64
 	Content() io.Reader
 }
 
-type record struct {
-	Version string
-	Header  *Header
-	Content io.Reader
+// A 'warcinfo' record describes the records that follow it, up through end
+// of file, end of input, or until next 'warcinfo' record. Typically, this
+// appears once and at the beginning of a WARC file. For a web archive, it
+// often contains information about the web crawl which generated the
+// following records.
+// The format of this descriptive record block may vary, though the use of
+// the "application/warc-fields" content-type is recommended. Allowable
+// fields include, but are not limited to, all \[DCMI\] plus the following
+// field definitions. All fields are optional.
+type WARCInfo struct {
+	WARCRecordId      string
+	WARCDate          time.Time
+	ContentLength     int64
+	ContentType       string
+	WARCBlockDigest   string
+	WARCPayloadDigest string
+	WARCTruncated     string
+	WARCFilename      string
+	content           io.Reader
 }
 
-// WARCInfo record type
-type Info struct {
-	Header  *Header
-	Content io.Reader
-}
+func (r WARCInfo) Type() RecordType   { return RecordTypeWarcInfo }
+func (r WARCInfo) Content() io.Reader { return r.content }
 
-func (i Info) Type() RecordType { return RecordTypeWarcInfo }
-
+// A 'response' record should contain a complete scheme-specific response,
+// including network protocol information where possible. The exact
+// contents of a 'response' record are determined not just by the record
+// type but also by the URI scheme of the record's target-URI, as described
+// below.
 type Response struct {
-	Header  *Header
-	Content io.Reader
+	WARCRecordId              string
+	WARCDate                  time.Time
+	ContentLength             int64
+	ContentType               string
+	WARCConcurrentTo          string
+	WARCBlockDigest           string
+	WARCPayloadDigest         string
+	WARCIPAddress             string
+	WARCTargetURI             string
+	WARCTruncated             string
+	WARCWarcinfoID            string
+	WARCIdentifiedPayloadType string
+	content                   io.Reader
 }
 
-func (r Response) Type() RecordType { return RecordTypeResponse }
+func (r Response) Type() RecordType   { return RecordTypeResponse }
+func (r Response) Content() io.Reader { return r.content }
 
 type Resource struct {
-	Header  *Header
-	Content io.Reader
+	WARCRecordId              string
+	WARCDate                  time.Time
+	ContentLength             int64
+	ContentType               string
+	WARCConcurrentTo          string
+	WARCBlockDigest           string
+	WARCPayloadDigest         string
+	WARCIPAddress             string
+	WARCTargetURI             string
+	WARCTruncated             string
+	WARCWarcinfoID            string
+	WARCIdentifiedPayloadType string
+	content                   io.Reader
 }
 
-func (r Resource) Type() RecordType { return RecordTypeResource }
+func (r Resource) Type() RecordType   { return RecordTypeResource }
+func (r Resource) Content() io.Reader { return r.content }
 
 type Request struct {
-	Header  *Header
-	Content io.Reader
+	WARCRecordId              string
+	WARCDate                  time.Time
+	ContentLength             int64
+	ContentType               string
+	WARCConcurrentTo          string
+	WARCBlockDigest           string
+	WARCPayloadDigest         string
+	WARCIPAddress             string
+	WARCTargetURI             string
+	WARCTruncated             string
+	WARCWarcinfoID            string
+	WARCIdentifiedPayloadType string
+	content                   io.Reader
 }
 
-func (r Request) Type() RecordType { return RecordTypeRequest }
+func (r Request) Type() RecordType   { return RecordTypeRequest }
+func (r Request) Content() io.Reader { return r.content }
 
 type Metadata struct {
-	Header  *Header
-	Content io.Reader
+	WARCRecordId     string
+	WARCDate         time.Time
+	ContentLength    int64
+	ContentType      string
+	WARCConcurrentTo string
+	WARCBlockDigest  string
+	WARCIPAddress    string
+	WARCRefersTo     string
+	WARCTargetURI    string `json:"omitempty"`
+	WARCTruncated    string
+	WARCWarcinfoID   string
+	content          io.Reader
 }
 
-func (r Metadata) Type() RecordType { return RecordTypeMetadata }
+func (r Metadata) Type() RecordType   { return RecordTypeMetadata }
+func (r Metadata) Content() io.Reader { return r.content }
 
 type Revisit struct {
-	Header  *Header
-	Content io.Reader
+	WARCRecordId      string
+	WARCDate          time.Time
+	ContentLength     int64
+	ContentType       string
+	WARCConcurrentTo  string
+	WARCBlockDigest   string
+	WARCPayloadDigest string
+	WARCIPAddress     string
+	WARCRefersTo      string
+	WARCTargetURI     string
+	WARCTruncated     string
+	WARCWarcinfoID    string
+	WARCProfile       string
+	content           io.Reader
 }
 
-func (r Revisit) Type() RecordType { return RecordTypeRevisit }
+func (r Revisit) Type() RecordType   { return RecordTypeRevisit }
+func (r Revisit) Content() io.Reader { return r.content }
 
 type Conversion struct {
-	Header  *Header
-	Content io.Reader
+	WARCRecordId      string
+	WARCDate          time.Time
+	ContentLength     int64
+	ContentType       string
+	WARCBlockDigest   string
+	WARCPayloadDigest string
+	WARCRefersTo      string
+	WARCTruncated     string
+	WARCWarcinfoID    string
+	content           io.Reader
 }
 
-func (r Conversion) Type() RecordType { return RecordTypeConversion }
+func (r Conversion) Type() RecordType   { return RecordTypeConversion }
+func (r Conversion) Content() io.Reader { return r.content }
 
 type Continuation struct {
-	Header  *Header
-	Content io.Reader
+	WARCRecordId           string
+	WARCDate               time.Time
+	ContentLength          int64
+	WARCBlockDigest        string
+	WARCPayloadDigest      string
+	WARCTruncated          string
+	WARCWarcinfoID         string
+	WARCSegmentNumber      int
+	WARCSegmentOriginID    string
+	WARCSegmentTotalLength int64
+	content                io.Reader
 }
 
-func (r Continuation) Type() RecordType { return RecordTypeContinuation }
+func (r Continuation) Type() RecordType   { return RecordTypeContinuation }
+func (r Continuation) Content() io.Reader { return r.content }

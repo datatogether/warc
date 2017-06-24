@@ -4,38 +4,38 @@ package warc
 import __yyfmt__ "fmt"
 
 //line warc.y:3
-import (
-	"bytes"
-	"fmt"
-)
-
-func setRecord(yylex interface{}, r *record) {
-	yylex.(*Tokenizer).Record = r
+func setRecord(yylex interface{}, p *parseRecord) {
+	yylex.(*Tokenizer).Record = p
 }
 
-func addRecord(yylex interface{}, r *record) {
-	yylex.(*Tokenizer).Records = append(yylex.(*Tokenizer).Records, r)
-	yylex.(*Tokenizer).Record = NewRecord()
+func getParseRecord(yylex interface{}) *parseRecord {
+	return yylex.(*Tokenizer).Record
 }
 
-func getLatestHeader(yylex interface{}) *Header {
-	return yylex.(*Tokenizer).Record.Header
+func addRecord(yylex interface{}, p *parseRecord) {
+	tkn := yylex.(*Tokenizer)
+	r, err := p.Record()
+	if err != nil {
+		tkn.ForceEOF = true
+		tkn.LastError = err.Error()
+	}
+	tkn.Records = append(yylex.(*Tokenizer).Records, r)
+	tkn.Record = &parseRecord{}
 }
 
 func forceEOF(yylex interface{}) {
 	yylex.(*Tokenizer).ForceEOF = true
 }
 
-//line warc.y:29
+//line warc.y:30
 type yySymType struct {
-	yys        int
-	empty      struct{}
-	records    []*record
-	record     *record
-	header     *Header
-	token      string
-	bytes      []byte
-	recordType RecordType
+	yys         int
+	empty       struct{}
+	records     []Record
+	parseRecord *parseRecord
+	token       string
+	bytes       []byte
+	recordType  RecordType
 }
 
 const LEX_ERROR = 57346
@@ -535,243 +535,245 @@ yydefault:
 
 	case 1:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:57
+		//line warc.y:56
 		{
-			addRecord(yylex, yyDollar[1].record)
+			addRecord(yylex, yyDollar[1].parseRecord)
 		}
 	case 2:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:61
+		//line warc.y:60
 		{
-			fmt.Println("huh?")
-			addRecord(yylex, yyDollar[2].record)
+			addRecord(yylex, yyDollar[2].parseRecord)
 			// setRecord(yylex, $2)
 			//$$ = append($1, $2)
 		}
 	case 3:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line warc.y:70
+		//line warc.y:68
 		{
-			yyVAL.record = &record{Version: string(yyDollar[1].bytes), Header: yyDollar[2].header, Content: bytes.NewReader(yyDollar[3].bytes)}
+			h := getParseRecord(yylex)
+			h.Version = string(yyDollar[1].bytes)
+			h.Content = yyDollar[3].bytes
+			yyVAL.parseRecord = h
 		}
 	case 4:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:76
+		//line warc.y:77
 		{
-			yyVAL.header = yyDollar[1].header
+			yyVAL.parseRecord = yyDollar[1].parseRecord
 		}
 	case 5:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:80
+		//line warc.y:81
 		{
-			yyVAL.header = yyDollar[2].header
+			yyVAL.parseRecord = yyDollar[2].parseRecord
 		}
 	case 6:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:86
+		//line warc.y:87
 		{
 			// TODO - convert to number
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.ContentLength = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 7:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:93
+		//line warc.y:94
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.ContentType = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 8:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:99
+		//line warc.y:100
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCBlockDigest = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 9:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:105
+		//line warc.y:106
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCConcurrentTo = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 10:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:111
+		//line warc.y:112
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCDate = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 11:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:117
+		//line warc.y:118
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCFilename = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 12:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:123
+		//line warc.y:124
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCIdentifiedPayloadType = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 13:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:129
+		//line warc.y:130
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCIPAddress = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 14:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:135
+		//line warc.y:136
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCPayloadDigest = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 15:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:141
+		//line warc.y:142
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCProfile = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 16:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:147
+		//line warc.y:148
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCRecordId = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 17:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:153
+		//line warc.y:154
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCRefersTo = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 18:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:159
+		//line warc.y:160
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCSegmentOriginID = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 19:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:165
+		//line warc.y:166
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCSegmentNumber = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 20:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:171
+		//line warc.y:172
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCSegmentTotalLength = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 21:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:177
+		//line warc.y:178
 		{
-			h := getLatestHeader(yylex)
-			h.WARCTargetUri = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			h := getParseRecord(yylex)
+			h.WARCTargetURI = string(yyDollar[2].bytes)
+			yyVAL.parseRecord = h
 		}
 	case 22:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:183
+		//line warc.y:184
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCTruncated = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 23:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:189
+		//line warc.y:190
 		{
-			h := getLatestHeader(yylex)
-			h.WARCInfoId = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			h := getParseRecord(yylex)
+			h.WARCWarcinfoID = string(yyDollar[2].bytes)
+			yyVAL.parseRecord = h
 		}
 	case 24:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:195
+		//line warc.y:196
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.WARCType = yyDollar[2].recordType
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 25:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line warc.y:201
+		//line warc.y:202
 		{
-			h := getLatestHeader(yylex)
+			h := getParseRecord(yylex)
 			h.CustomFields[string(yyDollar[1].bytes)] = string(yyDollar[2].bytes)
-			yyVAL.header = h
+			yyVAL.parseRecord = h
 		}
 	case 26:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:209
+		//line warc.y:210
 		{
 			yyVAL.recordType = RecordTypeConversion
 		}
 	case 27:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:213
+		//line warc.y:214
 		{
 			yyVAL.recordType = RecordTypeContinuation
 		}
 	case 28:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:217
+		//line warc.y:218
 		{
 			yyVAL.recordType = RecordTypeMetadata
 		}
 	case 29:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:221
+		//line warc.y:222
 		{
 			yyVAL.recordType = RecordTypeResource
 		}
 	case 30:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:225
+		//line warc.y:226
 		{
 			yyVAL.recordType = RecordTypeResponse
 		}
 	case 31:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:229
+		//line warc.y:230
 		{
 			yyVAL.recordType = RecordTypeRequest
 		}
 	case 32:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:233
+		//line warc.y:234
 		{
 			yyVAL.recordType = RecordTypeRevisit
 		}
 	case 33:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line warc.y:237
+		//line warc.y:238
 		{
 			yyVAL.recordType = RecordTypeWarcInfo
 		}

@@ -2,7 +2,7 @@ package warc
 
 import (
 	"bytes"
-	"fmt"
+	// "fmt"
 	"io/ioutil"
 	"testing"
 )
@@ -14,7 +14,7 @@ func TestWarcParse(t *testing.T) {
 		return
 	}
 
-	records, err := Parse(bytes.NewReader(data))
+	records, err := ParseAll(bytes.NewReader(data))
 	if err != nil {
 		t.Error(err)
 		return
@@ -24,4 +24,8 @@ func TestWarcParse(t *testing.T) {
 		t.Errorf("recod length mismatch: %d isn't enough records", len(records))
 		return
 	}
+
+	// for _, r := range records {
+	// 	fmt.Println(r.Type().String())
+	// }
 }

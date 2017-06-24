@@ -54,20 +54,14 @@ const (
 // NewTokenizer creates a new Tokenizer to read input from r
 func NewTokenizer(r io.Reader) *Tokenizer {
 	tkn := &Tokenizer{
-		Phase:   scanPhaseVersion,
-		Records: make([]*record, 0),
-		Record:  NewRecord(),
+		Phase: scanPhaseVersion,
+		// Records: make([]Record, 0),
+		Record: &parseRecord{},
 	}
 	s := bufio.NewScanner(r)
 	// s.Split(tkn.ScanToken)
 	tkn.InStream = s
 	return tkn
-}
-
-func NewRecord() *record {
-	return &record{
-		Header: &Header{},
-	}
 }
 
 // Tokenizer generates WARC tokens by scanning
@@ -81,10 +75,11 @@ type Tokenizer struct {
 	nextToken int
 	nextBytes []byte
 	LastError string
-	Records   []*record
-	Record    *record
+	Records   []Record
+	Record    *parseRecord
 }
 
+// Future plans for one day
 // func (tkn *Tokenizer) ScanToken(data []byte, atEOF bool) (advance int, token []byte, err error) {
 // 	if atEOF && len(data) == 0 {
 // 		return 0, nil, nil
@@ -199,7 +194,16 @@ func (tkn *Tokenizer) Scan() (int, []byte) {
 	return 0, nil
 }
 
-var tokens = []int{}
+// next advances the token scanner
+func (tkn *Tokenizer) next() {
+	if !tkn.InStream.Scan() || tkn.InStream.Err() != nil {
+		if tkn.InStream.Err() != nil {
+			fmt.Println("instream scan error:", tkn.InStream.Err())
+		}
+		tkn.ForceEOF = true
+	}
+	tkn.Position++
+}
 
 // Lex returns the next token form the Tokenizer.
 // This function is used by go yacc.
@@ -211,16 +215,6 @@ func (tkn *Tokenizer) Lex(lval *yySymType) int {
 	}
 	tkn.lastToken = val
 	return typ
-}
-
-func (tkn *Tokenizer) next() {
-	if !tkn.InStream.Scan() || tkn.InStream.Err() != nil {
-		if tkn.InStream.Err() != nil {
-			fmt.Println("instream scan error:", tkn.InStream.Err())
-		}
-		tkn.ForceEOF = true
-	}
-	tkn.Position++
 }
 
 func (tkn *Tokenizer) Error(err string) {
