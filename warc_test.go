@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestWarcParse(t *testing.T) {
+func TestWarcParseAll(t *testing.T) {
 	data, err := ioutil.ReadFile("testdata/test.warc")
 	if err != nil {
 		t.Error(err.Error())

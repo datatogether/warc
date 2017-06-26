@@ -121,7 +121,6 @@ func (tkn *Tokenizer) Scan() (int, []byte) {
 	tkn.next()
 
 	if tkn.ForceEOF {
-		fmt.Println("EOF")
 		return 0, nil
 	}
 	switch tkn.Phase {
