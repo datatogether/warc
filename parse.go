@@ -18,6 +18,15 @@ func ParseAll(r io.Reader) ([]Record, error) {
 	return tokenizer.Records, nil
 }
 
+// ParseRecord parses a single record from r
+func ParseRecord(r io.Reader) (Record, error) {
+	tokenizer := NewTokenizer(r)
+	if yyParse(tokenizer) != 0 {
+		return nil, errors.New(tokenizer.LastError)
+	}
+	return tokenizer.Record.Record()
+}
+
 // TODO
 // func ParseRecord(r io.Reader) (Record, error) {}
 

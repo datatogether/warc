@@ -67,16 +67,17 @@ func NewTokenizer(r io.Reader) *Tokenizer {
 // Tokenizer generates WARC tokens by scanning
 // from InStream
 type Tokenizer struct {
-	InStream  *bufio.Scanner
-	ForceEOF  bool
-	Phase     scanPhase
-	Position  int
-	lastToken []byte
-	nextToken int
-	nextBytes []byte
-	LastError string
-	Records   []Record
-	Record    *parseRecord
+	InStream         *bufio.Scanner
+	ForceEOF         bool
+	Phase            scanPhase
+	Position         int
+	lastToken        []byte
+	nextToken        int
+	nextBytes        []byte
+	LastError        string
+	RecordsRemaining int
+	Records          []Record
+	Record           *parseRecord
 }
 
 // Future plans for one day
@@ -188,6 +189,9 @@ func (tkn *Tokenizer) Scan() (int, []byte) {
 			block = append(block, '\n')
 			block = append(block, next...)
 			tkn.next()
+		}
+		if tkn.RecordsRemaining == 1 {
+			tkn.ForceEOF = true
 		}
 		return BLOCK, block
 	}

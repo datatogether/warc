@@ -62,7 +62,7 @@ func (r WARCInfo) GetDate() time.Time      { return r.WARCDate }
 func (r WARCInfo) GetContentLength() int64 { return r.ContentLength }
 func (r WARCInfo) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r WARCInfo) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:      r.WARCRecordId,
 		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:      int64String(r.ContentLength),
@@ -75,7 +75,7 @@ func (r WARCInfo) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }
 
 // A 'response' record should contain a complete scheme-specific response,
@@ -105,7 +105,7 @@ func (r Response) GetDate() time.Time      { return r.WARCDate }
 func (r Response) GetContentLength() int64 { return r.ContentLength }
 func (r Response) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Response) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:               r.WARCRecordId,
 		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:               int64String(r.ContentLength),
@@ -122,7 +122,7 @@ func (r Response) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }
 
 // A 'resource' record contains a resource, without full protocol response
@@ -156,7 +156,7 @@ func (r Resource) GetDate() time.Time      { return r.WARCDate }
 func (r Resource) GetContentLength() int64 { return r.ContentLength }
 func (r Resource) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Resource) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:               r.WARCRecordId,
 		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:               int64String(r.ContentLength),
@@ -173,7 +173,7 @@ func (r Resource) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }
 
 // A 'request' record holds the details of a complete scheme-specific
@@ -203,7 +203,7 @@ func (r Request) GetDate() time.Time      { return r.WARCDate }
 func (r Request) GetContentLength() int64 { return r.ContentLength }
 func (r Request) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Request) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:               r.WARCRecordId,
 		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:               int64String(r.ContentLength),
@@ -220,7 +220,7 @@ func (r Request) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }
 
 // A 'metadata' record contains content created in order to further
@@ -256,7 +256,7 @@ func (r Metadata) GetDate() time.Time      { return r.WARCDate }
 func (r Metadata) GetContentLength() int64 { return r.ContentLength }
 func (r Metadata) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Metadata) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:     r.WARCRecordId,
 		WARC_DATE:          r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:     int64String(r.ContentLength),
@@ -272,7 +272,7 @@ func (r Metadata) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }
 
 // A 'revisit' record describes the revisitation of content already
@@ -307,7 +307,7 @@ func (r Revisit) GetDate() time.Time      { return r.WARCDate }
 func (r Revisit) GetContentLength() int64 { return r.ContentLength }
 func (r Revisit) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Revisit) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:      r.WARCRecordId,
 		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:      int64String(r.ContentLength),
@@ -325,7 +325,7 @@ func (r Revisit) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }
 
 // A 'conversion' record shall contain an alternative version of another
@@ -362,7 +362,7 @@ func (r Conversion) GetDate() time.Time      { return r.WARCDate }
 func (r Conversion) GetContentLength() int64 { return r.ContentLength }
 func (r Conversion) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Conversion) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:      r.WARCRecordId,
 		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:      int64String(r.ContentLength),
@@ -376,7 +376,7 @@ func (r Conversion) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }
 
 // Record blocks from 'continuation' records must be appended to
@@ -410,7 +410,7 @@ func (r Continuation) GetDate() time.Time      { return r.WARCDate }
 func (r Continuation) GetContentLength() int64 { return r.ContentLength }
 func (r Continuation) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Continuation) Write(w io.Writer) error {
-	err := WriteHeader(w, r.Type(), map[int]string{
+	err := writeHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:            r.WARCRecordId,
 		WARC_DATE:                 r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:            int64String(r.ContentLength),
@@ -425,5 +425,5 @@ func (r Continuation) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.Content)
+	return writeBlock(w, r.Content)
 }

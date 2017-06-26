@@ -41,7 +41,7 @@ func WriteRecords(w io.Writer, records []Record) error {
 }
 
 // WriteHeader writes a fully formed header with version to w
-func WriteHeader(w io.Writer, t RecordType, fields map[int]string) error {
+func writeHeader(w io.Writer, t RecordType, fields map[int]string) error {
 	if err := writeWarcVersion(w); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func WriteHeader(w io.Writer, t RecordType, fields map[int]string) error {
 }
 
 // WriteBlock writes all of reader (record content) to w, followed by 2 CRLF's
-func WriteBlock(w io.Writer, r []byte) error {
+func writeBlock(w io.Writer, r []byte) error {
 	if _, err := w.Write(r); err != nil {
 		return err
 	}
