@@ -2,7 +2,7 @@ package warc
 
 import (
 	"bytes"
-	// "fmt"
+	"fmt"
 	// "io"
 	"io/ioutil"
 	"os"
@@ -10,24 +10,28 @@ import (
 )
 
 func TestWarcWrite(t *testing.T) {
-	data, err := ioutil.ReadFile("testdata/test.warc")
+	f, err := os.Open("testdata/test.warc")
 	if err != nil {
 		t.Error(err.Error())
 		return
 	}
+	defer f.Close()
 
-	records, err := ParseAll(bytes.NewReader(data))
+	records, err := NewReader(f).ReadAll()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	buf := &bytes.Buffer{}
+	// for _, c := range records {
+	// }
 
+	buf := &bytes.Buffer{}
 	for _, r := range records {
-		if r.(*Resource).WARCBlockDigest == "sha1:28ee620ee6d9ed280505fa9faca0ba357db82ffd" {
-			// io.Copy(os.Stdout, r.GetContent())
-		}
+		// if r.(*Resource).WARCBlockDigest == "sha1:28ee620ee6d9ed280505fa9faca0ba357db82ffd" {
+		// io.Copy(os.Stdout, r.GetContent())
+		fmt.Println(string(r.(*Resource).Content))
+		// }
 	}
 
 	if err := WriteRecords(buf, records); err != nil {

@@ -15,7 +15,7 @@ const (
 	RecordTypeContinuation
 )
 
-// Have RecordType satisfy the stringer interface
+// RecordType satisfies the stringer interface
 func (r RecordType) String() string {
 	switch r {
 	case RecordTypeWarcInfo:
