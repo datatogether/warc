@@ -1,7 +1,6 @@
 package warc
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -69,8 +68,6 @@ func (p *parseRecord) Record() (Record, error) {
 		return nil, err
 	}
 
-	r := bytes.NewReader(p.Content)
-
 	switch p.WARCType {
 	case RecordTypeWarcInfo:
 		return &WARCInfo{
@@ -82,7 +79,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCPayloadDigest: p.WARCPayloadDigest,
 			WARCTruncated:     p.WARCTruncated,
 			WARCFilename:      p.WARCFilename,
-			content:           r,
+			Content:           p.Content,
 		}, nil
 	case RecordTypeResponse:
 		return &Response{
@@ -98,7 +95,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCTruncated:             p.WARCTruncated,
 			WARCWarcinfoID:            p.WARCWarcinfoID,
 			WARCIdentifiedPayloadType: p.WARCIdentifiedPayloadType,
-			content:                   r,
+			Content:                   p.Content,
 		}, nil
 	case RecordTypeResource:
 		return &Resource{
@@ -114,7 +111,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCTruncated:             p.WARCTruncated,
 			WARCWarcinfoID:            p.WARCWarcinfoID,
 			WARCIdentifiedPayloadType: p.WARCIdentifiedPayloadType,
-			content:                   r,
+			Content:                   p.Content,
 		}, nil
 	case RecordTypeRequest:
 		return &Request{
@@ -130,7 +127,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCTruncated:             p.WARCTruncated,
 			WARCWarcinfoID:            p.WARCWarcinfoID,
 			WARCIdentifiedPayloadType: p.WARCIdentifiedPayloadType,
-			content:                   r,
+			Content:                   p.Content,
 		}, nil
 	case RecordTypeMetadata:
 		return &Metadata{
@@ -145,7 +142,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCTargetURI:    p.WARCTargetURI,
 			WARCTruncated:    p.WARCTruncated,
 			WARCWarcinfoID:   p.WARCWarcinfoID,
-			content:          r,
+			Content:          p.Content,
 		}, nil
 	case RecordTypeRevisit:
 		return &Revisit{
@@ -162,7 +159,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCTruncated:     p.WARCTruncated,
 			WARCWarcinfoID:    p.WARCWarcinfoID,
 			WARCProfile:       p.WARCProfile,
-			content:           r,
+			Content:           p.Content,
 		}, nil
 	case RecordTypeConversion:
 		return &Conversion{
@@ -175,7 +172,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCRefersTo:      p.WARCRefersTo,
 			WARCTruncated:     p.WARCTruncated,
 			WARCWarcinfoID:    p.WARCWarcinfoID,
-			content:           r,
+			Content:           p.Content,
 		}, nil
 	case RecordTypeContinuation:
 		seg, err := strconv.ParseInt(p.WARCSegmentNumber, 10, 0)
@@ -197,7 +194,7 @@ func (p *parseRecord) Record() (Record, error) {
 			WARCSegmentNumber:      int(seg),
 			WARCSegmentOriginID:    p.WARCSegmentOriginID,
 			WARCSegmentTotalLength: length,
-			content:                r,
+			Content:                p.Content,
 		}, nil
 	default:
 		// TODO - handle missing type field

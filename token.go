@@ -176,14 +176,18 @@ func (tkn *Tokenizer) Scan() (int, []byte) {
 		}
 	case scanPhaseContent:
 		tkn.Phase = scanPhaseVersion
-		block := tkn.InStream.Bytes()
+		// block := tkn.InStream.Bytes()
+		block := []byte{}
 		for {
-			tkn.next()
 			next := tkn.InStream.Bytes()
 			if len(next) == 0 {
 				break
 			}
+			// TODO - this can/will break hashes b/c the internal scanner
+			// removes \r from \r\n
+			block = append(block, '\n')
 			block = append(block, next...)
+			tkn.next()
 		}
 		return BLOCK, block
 	}

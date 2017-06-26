@@ -1,6 +1,7 @@
 package warc
 
 import (
+	"bytes"
 	"io"
 	"time"
 )
@@ -14,15 +15,23 @@ import (
 // information about archived content.
 type Records []Record
 
-// Basic constituent of a WARC file, consisting of a sequence of WARC
-// records.
+// Record is the common interface for all WARC Record Types
+// A Record consists of a version indicator (eg: WARC/1.0), zero or more headers,
+// and possibly a content block.
+// Upgrades to specific types of records can be done using type assertions
+// and/or the Type method.
 type Record interface {
+	// Return the type of record
 	Type() RecordType
-	// Id() string
-	// Date() time.Time
-	// Header() *Header
-	// ContentLength() int64
-	Content() io.Reader
+	// The ID for this record
+	GetRecordID() string
+	// Datestamp of record creation
+	GetDate() time.Time
+	// Length of content block in bytes
+	GetContentLength() int64
+	// Reader for content itself
+	GetContent() io.Reader
+	// Write this record to a given writer
 	Write(io.Writer) error
 }
 
@@ -44,13 +53,16 @@ type WARCInfo struct {
 	WARCPayloadDigest string
 	WARCTruncated     string
 	WARCFilename      string
-	content           io.Reader
+	Content           []byte
 }
 
-func (r WARCInfo) Type() RecordType   { return RecordTypeWarcInfo }
-func (r WARCInfo) Content() io.Reader { return r.content }
+func (r WARCInfo) Type() RecordType        { return RecordTypeWarcInfo }
+func (r WARCInfo) GetRecordID() string     { return r.WARCRecordId }
+func (r WARCInfo) GetDate() time.Time      { return r.WARCDate }
+func (r WARCInfo) GetContentLength() int64 { return r.ContentLength }
+func (r WARCInfo) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r WARCInfo) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
+	err := WriteHeader(w, r.Type(), map[int]string{
 		WARC_RECORD_ID:      r.WARCRecordId,
 		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
 		CONTENT_LENGTH:      int64String(r.ContentLength),
@@ -63,7 +75,7 @@ func (r WARCInfo) Write(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }
 
 // A 'response' record should contain a complete scheme-specific response,
@@ -84,23 +96,33 @@ type Response struct {
 	WARCTruncated             string
 	WARCWarcinfoID            string
 	WARCIdentifiedPayloadType string
-	content                   io.Reader
+	Content                   []byte
 }
 
-func (r Response) Type() RecordType   { return RecordTypeResponse }
-func (r Response) Content() io.Reader { return r.content }
+func (r Response) Type() RecordType        { return RecordTypeResponse }
+func (r Response) GetRecordID() string     { return r.WARCRecordId }
+func (r Response) GetDate() time.Time      { return r.WARCDate }
+func (r Response) GetContentLength() int64 { return r.ContentLength }
+func (r Response) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Response) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
-		WARC_RECORD_ID: r.WARCRecordId,
-		WARC_DATE:      r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH: int64String(r.ContentLength),
-		CONTENT_TYPE:   r.ContentType,
-		// TODO - add fields
+	err := WriteHeader(w, r.Type(), map[int]string{
+		WARC_RECORD_ID:               r.WARCRecordId,
+		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
+		CONTENT_LENGTH:               int64String(r.ContentLength),
+		CONTENT_TYPE:                 r.ContentType,
+		WARC_CONCURRENT_TO:           r.WARCConcurrentTo,
+		WARC_BLOCK_DIGEST:            r.WARCBlockDigest,
+		WARC_PAYLOAD_DIGEST:          r.WARCPayloadDigest,
+		WARC_IP_ADDRESS:              r.WARCIPAddress,
+		WARC_TARGET_URI:              r.WARCTargetURI,
+		WARC_TRUNCATED:               r.WARCTruncated,
+		WARC_WARCINFO_ID:             r.WARCWarcinfoID,
+		WARC_IDENTIFIED_PAYLOAD_TYPE: r.WARCIdentifiedPayloadType,
 	})
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }
 
 // A 'resource' record contains a resource, without full protocol response
@@ -125,23 +147,33 @@ type Resource struct {
 	WARCTruncated             string
 	WARCWarcinfoID            string
 	WARCIdentifiedPayloadType string
-	content                   io.Reader
+	Content                   []byte
 }
 
-func (r Resource) Type() RecordType   { return RecordTypeResource }
-func (r Resource) Content() io.Reader { return r.content }
+func (r Resource) Type() RecordType        { return RecordTypeResource }
+func (r Resource) GetRecordID() string     { return r.WARCRecordId }
+func (r Resource) GetDate() time.Time      { return r.WARCDate }
+func (r Resource) GetContentLength() int64 { return r.ContentLength }
+func (r Resource) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Resource) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
-		WARC_RECORD_ID: r.WARCRecordId,
-		WARC_DATE:      r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH: int64String(r.ContentLength),
-		CONTENT_TYPE:   r.ContentType,
-		// TODO - add fields
+	err := WriteHeader(w, r.Type(), map[int]string{
+		WARC_RECORD_ID:               r.WARCRecordId,
+		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
+		CONTENT_LENGTH:               int64String(r.ContentLength),
+		CONTENT_TYPE:                 r.ContentType,
+		WARC_CONCURRENT_TO:           r.WARCConcurrentTo,
+		WARC_BLOCK_DIGEST:            r.WARCBlockDigest,
+		WARC_PAYLOAD_DIGEST:          r.WARCPayloadDigest,
+		WARC_IP_ADDRESS:              r.WARCIPAddress,
+		WARC_TARGET_URI:              r.WARCTargetURI,
+		WARC_TRUNCATED:               r.WARCTruncated,
+		WARC_WARCINFO_ID:             r.WARCWarcinfoID,
+		WARC_IDENTIFIED_PAYLOAD_TYPE: r.WARCIdentifiedPayloadType,
 	})
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }
 
 // A 'request' record holds the details of a complete scheme-specific
@@ -162,23 +194,33 @@ type Request struct {
 	WARCTruncated             string
 	WARCWarcinfoID            string
 	WARCIdentifiedPayloadType string
-	content                   io.Reader
+	Content                   []byte
 }
 
-func (r Request) Type() RecordType   { return RecordTypeRequest }
-func (r Request) Content() io.Reader { return r.content }
+func (r Request) Type() RecordType        { return RecordTypeRequest }
+func (r Request) GetRecordID() string     { return r.WARCRecordId }
+func (r Request) GetDate() time.Time      { return r.WARCDate }
+func (r Request) GetContentLength() int64 { return r.ContentLength }
+func (r Request) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Request) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
-		WARC_RECORD_ID: r.WARCRecordId,
-		WARC_DATE:      r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH: int64String(r.ContentLength),
-		CONTENT_TYPE:   r.ContentType,
-		// TODO - add fields
+	err := WriteHeader(w, r.Type(), map[int]string{
+		WARC_RECORD_ID:               r.WARCRecordId,
+		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
+		CONTENT_LENGTH:               int64String(r.ContentLength),
+		CONTENT_TYPE:                 r.ContentType,
+		WARC_CONCURRENT_TO:           r.WARCConcurrentTo,
+		WARC_BLOCK_DIGEST:            r.WARCBlockDigest,
+		WARC_PAYLOAD_DIGEST:          r.WARCPayloadDigest,
+		WARC_IP_ADDRESS:              r.WARCIPAddress,
+		WARC_TARGET_URI:              r.WARCTargetURI,
+		WARC_TRUNCATED:               r.WARCTruncated,
+		WARC_WARCINFO_ID:             r.WARCWarcinfoID,
+		WARC_IDENTIFIED_PAYLOAD_TYPE: r.WARCIdentifiedPayloadType,
 	})
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }
 
 // A 'metadata' record contains content created in order to further
@@ -205,23 +247,32 @@ type Metadata struct {
 	WARCTargetURI    string `json:"omitempty"`
 	WARCTruncated    string
 	WARCWarcinfoID   string
-	content          io.Reader
+	Content          []byte
 }
 
-func (r Metadata) Type() RecordType   { return RecordTypeMetadata }
-func (r Metadata) Content() io.Reader { return r.content }
+func (r Metadata) Type() RecordType        { return RecordTypeMetadata }
+func (r Metadata) GetRecordID() string     { return r.WARCRecordId }
+func (r Metadata) GetDate() time.Time      { return r.WARCDate }
+func (r Metadata) GetContentLength() int64 { return r.ContentLength }
+func (r Metadata) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Metadata) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
-		WARC_RECORD_ID: r.WARCRecordId,
-		WARC_DATE:      r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH: int64String(r.ContentLength),
-		CONTENT_TYPE:   r.ContentType,
-		// TODO - add fields
+	err := WriteHeader(w, r.Type(), map[int]string{
+		WARC_RECORD_ID:     r.WARCRecordId,
+		WARC_DATE:          r.WARCDate.Format(time.RFC3339),
+		CONTENT_LENGTH:     int64String(r.ContentLength),
+		CONTENT_TYPE:       r.ContentType,
+		WARC_CONCURRENT_TO: r.WARCConcurrentTo,
+		WARC_BLOCK_DIGEST:  r.WARCBlockDigest,
+		WARC_IP_ADDRESS:    r.WARCIPAddress,
+		WARC_REFERS_TO:     r.WARCRefersTo,
+		WARC_TARGET_URI:    r.WARCTargetURI,
+		WARC_TRUNCATED:     r.WARCTruncated,
+		WARC_WARCINFO_ID:   r.WARCWarcinfoID,
 	})
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }
 
 // A 'revisit' record describes the revisitation of content already
@@ -247,23 +298,34 @@ type Revisit struct {
 	WARCTruncated     string
 	WARCWarcinfoID    string
 	WARCProfile       string
-	content           io.Reader
+	Content           []byte
 }
 
-func (r Revisit) Type() RecordType   { return RecordTypeRevisit }
-func (r Revisit) Content() io.Reader { return r.content }
+func (r Revisit) Type() RecordType        { return RecordTypeRevisit }
+func (r Revisit) GetRecordID() string     { return r.WARCRecordId }
+func (r Revisit) GetDate() time.Time      { return r.WARCDate }
+func (r Revisit) GetContentLength() int64 { return r.ContentLength }
+func (r Revisit) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Revisit) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
-		WARC_RECORD_ID: r.WARCRecordId,
-		WARC_DATE:      r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH: int64String(r.ContentLength),
-		CONTENT_TYPE:   r.ContentType,
-		// TODO - add fields
+	err := WriteHeader(w, r.Type(), map[int]string{
+		WARC_RECORD_ID:      r.WARCRecordId,
+		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
+		CONTENT_LENGTH:      int64String(r.ContentLength),
+		CONTENT_TYPE:        r.ContentType,
+		WARC_CONCURRENT_TO:  r.WARCConcurrentTo,
+		WARC_BLOCK_DIGEST:   r.WARCBlockDigest,
+		WARC_PAYLOAD_DIGEST: r.WARCPayloadDigest,
+		WARC_IP_ADDRESS:     r.WARCIPAddress,
+		WARC_REFERS_TO:      r.WARCRefersTo,
+		WARC_TARGET_URI:     r.WARCTargetURI,
+		WARC_TRUNCATED:      r.WARCTruncated,
+		WARC_WARCINFO_ID:    r.WARCWarcinfoID,
+		WARC_PROFILE:        r.WARCProfile,
 	})
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }
 
 // A 'conversion' record shall contain an alternative version of another
@@ -291,23 +353,30 @@ type Conversion struct {
 	WARCRefersTo      string
 	WARCTruncated     string
 	WARCWarcinfoID    string
-	content           io.Reader
+	Content           []byte
 }
 
-func (r Conversion) Type() RecordType   { return RecordTypeConversion }
-func (r Conversion) Content() io.Reader { return r.content }
+func (r Conversion) Type() RecordType        { return RecordTypeConversion }
+func (r Conversion) GetRecordID() string     { return r.WARCRecordId }
+func (r Conversion) GetDate() time.Time      { return r.WARCDate }
+func (r Conversion) GetContentLength() int64 { return r.ContentLength }
+func (r Conversion) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Conversion) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
-		WARC_RECORD_ID: r.WARCRecordId,
-		WARC_DATE:      r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH: int64String(r.ContentLength),
-		CONTENT_TYPE:   r.ContentType,
-		// TODO - add fields
+	err := WriteHeader(w, r.Type(), map[int]string{
+		WARC_RECORD_ID:      r.WARCRecordId,
+		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
+		CONTENT_LENGTH:      int64String(r.ContentLength),
+		CONTENT_TYPE:        r.ContentType,
+		WARC_BLOCK_DIGEST:   r.WARCBlockDigest,
+		WARC_PAYLOAD_DIGEST: r.WARCPayloadDigest,
+		WARC_REFERS_TO:      r.WARCRefersTo,
+		WARC_TRUNCATED:      r.WARCTruncated,
+		WARC_WARCINFO_ID:    r.WARCWarcinfoID,
 	})
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }
 
 // Record blocks from 'continuation' records must be appended to
@@ -332,20 +401,29 @@ type Continuation struct {
 	WARCSegmentNumber      int
 	WARCSegmentOriginID    string
 	WARCSegmentTotalLength int64
-	content                io.Reader
+	Content                []byte
 }
 
-func (r Continuation) Type() RecordType   { return RecordTypeContinuation }
-func (r Continuation) Content() io.Reader { return r.content }
+func (r Continuation) Type() RecordType        { return RecordTypeContinuation }
+func (r Continuation) GetRecordID() string     { return r.WARCRecordId }
+func (r Continuation) GetDate() time.Time      { return r.WARCDate }
+func (r Continuation) GetContentLength() int64 { return r.ContentLength }
+func (r Continuation) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Continuation) Write(w io.Writer) error {
-	err := WriteHeader(w, map[int]string{
-		WARC_RECORD_ID: r.WARCRecordId,
-		WARC_DATE:      r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH: int64String(r.ContentLength),
-		// TODO - add fields
+	err := WriteHeader(w, r.Type(), map[int]string{
+		WARC_RECORD_ID:            r.WARCRecordId,
+		WARC_DATE:                 r.WARCDate.Format(time.RFC3339),
+		CONTENT_LENGTH:            int64String(r.ContentLength),
+		WARC_BLOCK_DIGEST:         r.WARCBlockDigest,
+		WARC_PAYLOAD_DIGEST:       r.WARCPayloadDigest,
+		WARC_TRUNCATED:            r.WARCTruncated,
+		WARC_WARCINFO_ID:          r.WARCWarcinfoID,
+		WARC_SEGMENT_NUMBER:       intString(r.WARCSegmentNumber),
+		WARC_SEGMENT_ORIGIN_ID:    r.WARCSegmentOriginID,
+		WARC_SEGMENT_TOTAL_LENGTH: int64String(r.WARCSegmentTotalLength),
 	})
 	if err != nil {
 		return err
 	}
-	return WriteBlock(w, r.content)
+	return WriteBlock(w, r.Content)
 }

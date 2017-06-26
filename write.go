@@ -30,23 +30,36 @@ var definedFieldNames = map[int]string{
 	WARC_WARCINFO_ID:             "warc-warcinfo-id",
 }
 
+// WriteRecords calls Write on each record to w
+func WriteRecords(w io.Writer, records []Record) error {
+	for _, rec := range records {
+		if err := rec.Write(w); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // WriteHeader writes a fully formed header with version to w
-func WriteHeader(w io.Writer, fields map[int]string) error {
+func WriteHeader(w io.Writer, t RecordType, fields map[int]string) error {
 	if err := writeWarcVersion(w); err != nil {
+		return err
+	}
+	if err := writeField(w, definedFieldNames[WARC_TYPE], t.String()); err != nil {
 		return err
 	}
 	if err := writeDefinedFields(w, fields); err != nil {
 		return err
 	}
-	if _, err := io.WriteString(w, "\r\n"); err != nil {
-		return err
-	}
+	// if _, err := io.WriteString(w, "\r\n"); err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
 // WriteBlock writes all of reader (record content) to w, followed by 2 CRLF's
-func WriteBlock(w io.Writer, r io.Reader) error {
-	if _, err := io.Copy(w, r); err != nil {
+func WriteBlock(w io.Writer, r []byte) error {
+	if _, err := w.Write(r); err != nil {
 		return err
 	}
 	// write 2xCRLF
@@ -63,28 +76,36 @@ func writeWarcVersion(w io.Writer) error {
 // writeDefinedFields takes a map of token constants to values, and writes them to w
 // it skips fields who's value is ""
 func writeDefinedFields(w io.Writer, fields map[int]string) error {
-	for field, val := range fields {
+	for field, value := range fields {
 		key := definedFieldNames[field]
 		if key == "" {
-			return fmt.Errorf("no defined field name with integer %d exists for value %s", field, val)
+			return fmt.Errorf("no defined field name with integer %d exists for value %s", field, value)
 		}
 
 		// don't write empty fields
-		if val == "" {
+		if value == "" {
 			continue
 		}
 
-		// format entry
-		ln := fmt.Sprintf("%s: %s\r\n", key, val)
-
-		if _, err := io.WriteString(w, ln); err != nil {
+		if err := writeField(w, key, value); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+func writeField(w io.Writer, key, value string) error {
+	// format entry
+	ln := fmt.Sprintf("%s: %s\r\n", key, value)
+	_, err := io.WriteString(w, ln)
+	return err
+}
+
 // convenience func to convert int64s to a string
 func int64String(i int64) string {
 	return strconv.FormatInt(i, 10)
+}
+
+func intString(i int) string {
+	return strconv.FormatInt(int64(i), 10)
 }

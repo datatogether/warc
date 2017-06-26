@@ -59,8 +59,6 @@ warc_records:
 | warc_records warc_record
   {
     addRecord(yylex, $2)
-    // setRecord(yylex, $2)
-    //$$ = append($1, $2)
   }
 
 warc_record:
