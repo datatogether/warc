@@ -29,6 +29,10 @@ func NewReader(r io.Reader) *Reader {
 // Read a record, will return nil, io.EOF to signal
 // no more records
 func (r *Reader) Read() (Record, error) {
+	// rec, err := r.parseRecord()
+	// if err == nil {
+	// 	fmt.Println(string(rec.(*Resource).Content))
+	// }
 	return r.parseRecord()
 }
 
@@ -47,6 +51,7 @@ func (r *Reader) ReadAll() (records []Record, err error) {
 	return
 }
 
+// scanphase denotes different "modes" for scanning
 type scanPhase int
 
 const (
@@ -58,9 +63,9 @@ const (
 
 func (r *Reader) parseRecord() (Record, error) {
 	for r.scanner.Scan() {
-		token := r.scanner.Bytes()
-
-		// fmt.Println(r.phase, string(token))
+		// need to copy here. trust.
+		token := make([]byte, len(r.scanner.Bytes()))
+		copy(token, r.scanner.Bytes())
 
 		switch r.phase {
 		case scanPhaseVersion:

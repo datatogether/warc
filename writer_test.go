@@ -1,16 +1,13 @@
 package warc
 
 import (
-	"bytes"
-	"fmt"
-	// "io"
-	"io/ioutil"
 	"os"
 	"testing"
 )
 
 func TestWarcWrite(t *testing.T) {
 	f, err := os.Open("testdata/test.warc")
+	// data, err := ioutil.ReadFile("testdata/test.warc")
 	if err != nil {
 		t.Error(err.Error())
 		return
@@ -23,22 +20,15 @@ func TestWarcWrite(t *testing.T) {
 		return
 	}
 
-	// for _, c := range records {
-	// }
-
-	buf := &bytes.Buffer{}
-	for _, r := range records {
-		// if r.(*Resource).WARCBlockDigest == "sha1:28ee620ee6d9ed280505fa9faca0ba357db82ffd" {
-		// io.Copy(os.Stdout, r.GetContent())
-		fmt.Println(string(r.(*Resource).Content))
-		// }
+	out, err := os.Create("testdata/out.warc")
+	if err != nil {
+		t.Error(err)
+		return
 	}
-
-	if err := WriteRecords(buf, records); err != nil {
+	defer out.Close()
+	if err := WriteRecords(out, records); err != nil {
 		t.Error(err)
 		return
 	}
 
-	// fmt.Println(len(data), len(buf.Bytes()))
-	ioutil.WriteFile("testdata/out.warc", buf.Bytes(), os.ModePerm)
 }

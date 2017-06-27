@@ -35,8 +35,8 @@ func writeHeader(w io.Writer, t RecordType, fields map[string]string) error {
 
 // WriteBlock writes all of reader (record content) to w, followed by 2 CRLF's
 func writeBlock(w io.Writer, r []byte) error {
-	fmt.Println(string(r))
-	fmt.Println("------")
+	// fmt.Println(string(r))
+	// fmt.Println("------")
 	if _, err := w.Write(r); err != nil {
 		return err
 	}
