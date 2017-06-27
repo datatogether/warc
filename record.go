@@ -62,15 +62,15 @@ func (r WARCInfo) GetDate() time.Time      { return r.WARCDate }
 func (r WARCInfo) GetContentLength() int64 { return r.ContentLength }
 func (r WARCInfo) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r WARCInfo) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:      r.WARCRecordId,
-		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:      int64String(r.ContentLength),
-		CONTENT_TYPE:        r.ContentType,
-		WARC_BLOCK_DIGEST:   r.WARCBlockDigest,
-		WARC_PAYLOAD_DIGEST: r.WARCPayloadDigest,
-		WARC_TRUNCATED:      r.WARCTruncated,
-		WARC_FILENAME:       r.WARCFilename,
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:      r.WARCRecordId,
+		warc_date:           r.WARCDate.Format(time.RFC3339),
+		content_length:      int64String(r.ContentLength),
+		content_type:        r.ContentType,
+		warc_block_digest:   r.WARCBlockDigest,
+		warc_payload_digest: r.WARCPayloadDigest,
+		warc_truncated:      r.WARCTruncated,
+		warc_filename:       r.WARCFilename,
 	})
 	if err != nil {
 		return err
@@ -105,19 +105,19 @@ func (r Response) GetDate() time.Time      { return r.WARCDate }
 func (r Response) GetContentLength() int64 { return r.ContentLength }
 func (r Response) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Response) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:               r.WARCRecordId,
-		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:               int64String(r.ContentLength),
-		CONTENT_TYPE:                 r.ContentType,
-		WARC_CONCURRENT_TO:           r.WARCConcurrentTo,
-		WARC_BLOCK_DIGEST:            r.WARCBlockDigest,
-		WARC_PAYLOAD_DIGEST:          r.WARCPayloadDigest,
-		WARC_IP_ADDRESS:              r.WARCIPAddress,
-		WARC_TARGET_URI:              r.WARCTargetURI,
-		WARC_TRUNCATED:               r.WARCTruncated,
-		WARC_WARCINFO_ID:             r.WARCWarcinfoID,
-		WARC_IDENTIFIED_PAYLOAD_TYPE: r.WARCIdentifiedPayloadType,
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:               r.WARCRecordId,
+		warc_date:                    r.WARCDate.Format(time.RFC3339),
+		content_length:               int64String(r.ContentLength),
+		content_type:                 r.ContentType,
+		warc_concurrent_to:           r.WARCConcurrentTo,
+		warc_block_digest:            r.WARCBlockDigest,
+		warc_payload_digest:          r.WARCPayloadDigest,
+		warc_ip_address:              r.WARCIPAddress,
+		warc_target_uri:              r.WARCTargetURI,
+		warc_truncated:               r.WARCTruncated,
+		warc_warcinfo_id:             r.WARCWarcinfoID,
+		warc_identified_payload_type: r.WARCIdentifiedPayloadType,
 	})
 	if err != nil {
 		return err
@@ -156,19 +156,19 @@ func (r Resource) GetDate() time.Time      { return r.WARCDate }
 func (r Resource) GetContentLength() int64 { return r.ContentLength }
 func (r Resource) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Resource) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:               r.WARCRecordId,
-		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:               int64String(r.ContentLength),
-		CONTENT_TYPE:                 r.ContentType,
-		WARC_CONCURRENT_TO:           r.WARCConcurrentTo,
-		WARC_BLOCK_DIGEST:            r.WARCBlockDigest,
-		WARC_PAYLOAD_DIGEST:          r.WARCPayloadDigest,
-		WARC_IP_ADDRESS:              r.WARCIPAddress,
-		WARC_TARGET_URI:              r.WARCTargetURI,
-		WARC_TRUNCATED:               r.WARCTruncated,
-		WARC_WARCINFO_ID:             r.WARCWarcinfoID,
-		WARC_IDENTIFIED_PAYLOAD_TYPE: r.WARCIdentifiedPayloadType,
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:               r.WARCRecordId,
+		warc_date:                    r.WARCDate.Format(time.RFC3339),
+		content_length:               int64String(r.ContentLength),
+		content_type:                 r.ContentType,
+		warc_concurrent_to:           r.WARCConcurrentTo,
+		warc_block_digest:            r.WARCBlockDigest,
+		warc_payload_digest:          r.WARCPayloadDigest,
+		warc_ip_address:              r.WARCIPAddress,
+		warc_target_uri:              r.WARCTargetURI,
+		warc_truncated:               r.WARCTruncated,
+		warc_warcinfo_id:             r.WARCWarcinfoID,
+		warc_identified_payload_type: r.WARCIdentifiedPayloadType,
 	})
 	if err != nil {
 		return err
@@ -203,19 +203,19 @@ func (r Request) GetDate() time.Time      { return r.WARCDate }
 func (r Request) GetContentLength() int64 { return r.ContentLength }
 func (r Request) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Request) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:               r.WARCRecordId,
-		WARC_DATE:                    r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:               int64String(r.ContentLength),
-		CONTENT_TYPE:                 r.ContentType,
-		WARC_CONCURRENT_TO:           r.WARCConcurrentTo,
-		WARC_BLOCK_DIGEST:            r.WARCBlockDigest,
-		WARC_PAYLOAD_DIGEST:          r.WARCPayloadDigest,
-		WARC_IP_ADDRESS:              r.WARCIPAddress,
-		WARC_TARGET_URI:              r.WARCTargetURI,
-		WARC_TRUNCATED:               r.WARCTruncated,
-		WARC_WARCINFO_ID:             r.WARCWarcinfoID,
-		WARC_IDENTIFIED_PAYLOAD_TYPE: r.WARCIdentifiedPayloadType,
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:               r.WARCRecordId,
+		warc_date:                    r.WARCDate.Format(time.RFC3339),
+		content_length:               int64String(r.ContentLength),
+		content_type:                 r.ContentType,
+		warc_concurrent_to:           r.WARCConcurrentTo,
+		warc_block_digest:            r.WARCBlockDigest,
+		warc_payload_digest:          r.WARCPayloadDigest,
+		warc_ip_address:              r.WARCIPAddress,
+		warc_target_uri:              r.WARCTargetURI,
+		warc_truncated:               r.WARCTruncated,
+		warc_warcinfo_id:             r.WARCWarcinfoID,
+		warc_identified_payload_type: r.WARCIdentifiedPayloadType,
 	})
 	if err != nil {
 		return err
@@ -256,18 +256,18 @@ func (r Metadata) GetDate() time.Time      { return r.WARCDate }
 func (r Metadata) GetContentLength() int64 { return r.ContentLength }
 func (r Metadata) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Metadata) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:     r.WARCRecordId,
-		WARC_DATE:          r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:     int64String(r.ContentLength),
-		CONTENT_TYPE:       r.ContentType,
-		WARC_CONCURRENT_TO: r.WARCConcurrentTo,
-		WARC_BLOCK_DIGEST:  r.WARCBlockDigest,
-		WARC_IP_ADDRESS:    r.WARCIPAddress,
-		WARC_REFERS_TO:     r.WARCRefersTo,
-		WARC_TARGET_URI:    r.WARCTargetURI,
-		WARC_TRUNCATED:     r.WARCTruncated,
-		WARC_WARCINFO_ID:   r.WARCWarcinfoID,
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:     r.WARCRecordId,
+		warc_date:          r.WARCDate.Format(time.RFC3339),
+		content_length:     int64String(r.ContentLength),
+		content_type:       r.ContentType,
+		warc_concurrent_to: r.WARCConcurrentTo,
+		warc_block_digest:  r.WARCBlockDigest,
+		warc_ip_address:    r.WARCIPAddress,
+		warc_refers_to:     r.WARCRefersTo,
+		warc_target_uri:    r.WARCTargetURI,
+		warc_truncated:     r.WARCTruncated,
+		warc_warcinfo_id:   r.WARCWarcinfoID,
 	})
 	if err != nil {
 		return err
@@ -307,20 +307,20 @@ func (r Revisit) GetDate() time.Time      { return r.WARCDate }
 func (r Revisit) GetContentLength() int64 { return r.ContentLength }
 func (r Revisit) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Revisit) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:      r.WARCRecordId,
-		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:      int64String(r.ContentLength),
-		CONTENT_TYPE:        r.ContentType,
-		WARC_CONCURRENT_TO:  r.WARCConcurrentTo,
-		WARC_BLOCK_DIGEST:   r.WARCBlockDigest,
-		WARC_PAYLOAD_DIGEST: r.WARCPayloadDigest,
-		WARC_IP_ADDRESS:     r.WARCIPAddress,
-		WARC_REFERS_TO:      r.WARCRefersTo,
-		WARC_TARGET_URI:     r.WARCTargetURI,
-		WARC_TRUNCATED:      r.WARCTruncated,
-		WARC_WARCINFO_ID:    r.WARCWarcinfoID,
-		WARC_PROFILE:        r.WARCProfile,
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:      r.WARCRecordId,
+		warc_date:           r.WARCDate.Format(time.RFC3339),
+		content_length:      int64String(r.ContentLength),
+		content_type:        r.ContentType,
+		warc_concurrent_to:  r.WARCConcurrentTo,
+		warc_block_digest:   r.WARCBlockDigest,
+		warc_payload_digest: r.WARCPayloadDigest,
+		warc_ip_address:     r.WARCIPAddress,
+		warc_refers_to:      r.WARCRefersTo,
+		warc_target_uri:     r.WARCTargetURI,
+		warc_truncated:      r.WARCTruncated,
+		warc_warcinfo_id:    r.WARCWarcinfoID,
+		warc_profile:        r.WARCProfile,
 	})
 	if err != nil {
 		return err
@@ -362,16 +362,16 @@ func (r Conversion) GetDate() time.Time      { return r.WARCDate }
 func (r Conversion) GetContentLength() int64 { return r.ContentLength }
 func (r Conversion) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Conversion) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:      r.WARCRecordId,
-		WARC_DATE:           r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:      int64String(r.ContentLength),
-		CONTENT_TYPE:        r.ContentType,
-		WARC_BLOCK_DIGEST:   r.WARCBlockDigest,
-		WARC_PAYLOAD_DIGEST: r.WARCPayloadDigest,
-		WARC_REFERS_TO:      r.WARCRefersTo,
-		WARC_TRUNCATED:      r.WARCTruncated,
-		WARC_WARCINFO_ID:    r.WARCWarcinfoID,
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:      r.WARCRecordId,
+		warc_date:           r.WARCDate.Format(time.RFC3339),
+		content_length:      int64String(r.ContentLength),
+		content_type:        r.ContentType,
+		warc_block_digest:   r.WARCBlockDigest,
+		warc_payload_digest: r.WARCPayloadDigest,
+		warc_refers_to:      r.WARCRefersTo,
+		warc_truncated:      r.WARCTruncated,
+		warc_warcinfo_id:    r.WARCWarcinfoID,
 	})
 	if err != nil {
 		return err
@@ -410,17 +410,17 @@ func (r Continuation) GetDate() time.Time      { return r.WARCDate }
 func (r Continuation) GetContentLength() int64 { return r.ContentLength }
 func (r Continuation) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
 func (r Continuation) Write(w io.Writer) error {
-	err := writeHeader(w, r.Type(), map[int]string{
-		WARC_RECORD_ID:            r.WARCRecordId,
-		WARC_DATE:                 r.WARCDate.Format(time.RFC3339),
-		CONTENT_LENGTH:            int64String(r.ContentLength),
-		WARC_BLOCK_DIGEST:         r.WARCBlockDigest,
-		WARC_PAYLOAD_DIGEST:       r.WARCPayloadDigest,
-		WARC_TRUNCATED:            r.WARCTruncated,
-		WARC_WARCINFO_ID:          r.WARCWarcinfoID,
-		WARC_SEGMENT_NUMBER:       intString(r.WARCSegmentNumber),
-		WARC_SEGMENT_ORIGIN_ID:    r.WARCSegmentOriginID,
-		WARC_SEGMENT_TOTAL_LENGTH: int64String(r.WARCSegmentTotalLength),
+	err := writeHeader(w, r.Type(), map[string]string{
+		warc_record_id:            r.WARCRecordId,
+		warc_date:                 r.WARCDate.Format(time.RFC3339),
+		content_length:            int64String(r.ContentLength),
+		warc_block_digest:         r.WARCBlockDigest,
+		warc_payload_digest:       r.WARCPayloadDigest,
+		warc_truncated:            r.WARCTruncated,
+		warc_warcinfo_id:          r.WARCWarcinfoID,
+		warc_segment_number:       intString(r.WARCSegmentNumber),
+		warc_segment_origin_id:    r.WARCSegmentOriginID,
+		warc_segment_total_length: int64String(r.WARCSegmentTotalLength),
 	})
 	if err != nil {
 		return err

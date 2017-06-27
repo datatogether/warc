@@ -6,30 +6,6 @@ import (
 	"strconv"
 )
 
-// definedFieldNames maps tokens back to their respsective
-// field name strings
-var definedFieldNames = map[int]string{
-	CONTENT_LENGTH:               "content-length",
-	CONTENT_TYPE:                 "content-type",
-	WARC_BLOCK_DIGEST:            "warc-block-digest",
-	WARC_CONCURRENT_TO:           "warc-concurrent-to",
-	WARC_FILENAME:                "warc-filename",
-	WARC_DATE:                    "warc-date",
-	WARC_IDENTIFIED_PAYLOAD_TYPE: "warc-identified-payload-type",
-	WARC_IP_ADDRESS:              "warc-ip-address",
-	WARC_PAYLOAD_DIGEST:          "warc-payload-digest",
-	WARC_PROFILE:                 "warc-profile",
-	WARC_RECORD_ID:               "warc-record-id",
-	WARC_REFERS_TO:               "warc-refers-to",
-	WARC_SEGMENT_ORIGIN_ID:       "warc-segment-origin-id",
-	WARC_SEGMENT_NUMBER:          "warc-segment-number",
-	WARC_SEGMENT_TOTAL_LENGTH:    "warc-segment-total-length",
-	WARC_TARGET_URI:              "warc-target-uri",
-	WARC_TRUNCATED:               "warc-truncated",
-	WARC_TYPE:                    "warc-type",
-	WARC_WARCINFO_ID:             "warc-warcinfo-id",
-}
-
 // WriteRecords calls Write on each record to w
 func WriteRecords(w io.Writer, records []Record) error {
 	for _, rec := range records {
@@ -41,24 +17,26 @@ func WriteRecords(w io.Writer, records []Record) error {
 }
 
 // WriteHeader writes a fully formed header with version to w
-func writeHeader(w io.Writer, t RecordType, fields map[int]string) error {
+func writeHeader(w io.Writer, t RecordType, fields map[string]string) error {
 	if err := writeWarcVersion(w); err != nil {
 		return err
 	}
-	if err := writeField(w, definedFieldNames[WARC_TYPE], t.String()); err != nil {
+	if err := writeField(w, warc_type, t.String()); err != nil {
 		return err
 	}
-	if err := writeDefinedFields(w, fields); err != nil {
+	if err := writeFields(w, fields); err != nil {
 		return err
 	}
-	// if _, err := io.WriteString(w, "\r\n"); err != nil {
-	// 	return err
-	// }
+	if _, err := io.WriteString(w, "\r\n"); err != nil {
+		return err
+	}
 	return nil
 }
 
 // WriteBlock writes all of reader (record content) to w, followed by 2 CRLF's
 func writeBlock(w io.Writer, r []byte) error {
+	// fmt.Println(string(r))
+	// fmt.Println("------")
 	if _, err := w.Write(r); err != nil {
 		return err
 	}
@@ -75,19 +53,9 @@ func writeWarcVersion(w io.Writer) error {
 
 // writeDefinedFields takes a map of token constants to values, and writes them to w
 // it skips fields who's value is ""
-func writeDefinedFields(w io.Writer, fields map[int]string) error {
+func writeFields(w io.Writer, fields map[string]string) error {
 	for field, value := range fields {
-		key := definedFieldNames[field]
-		if key == "" {
-			return fmt.Errorf("no defined field name with integer %d exists for value %s", field, value)
-		}
-
-		// don't write empty fields
-		if value == "" {
-			continue
-		}
-
-		if err := writeField(w, key, value); err != nil {
+		if err := writeField(w, field, value); err != nil {
 			return err
 		}
 	}
@@ -95,6 +63,10 @@ func writeDefinedFields(w io.Writer, fields map[int]string) error {
 }
 
 func writeField(w io.Writer, key, value string) error {
+	// don't write empty fields
+	if value == "" {
+		return nil
+	}
 	// format entry
 	ln := fmt.Sprintf("%s: %s\r\n", key, value)
 	_, err := io.WriteString(w, ln)

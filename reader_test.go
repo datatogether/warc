@@ -1,27 +1,26 @@
 package warc
 
 import (
-	"bytes"
-	// "fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
-func TestWarcParseAll(t *testing.T) {
-	data, err := ioutil.ReadFile("testdata/test.warc")
+func TestReadAll(t *testing.T) {
+	f, err := os.Open("testdata/test.warc")
 	if err != nil {
 		t.Error(err.Error())
 		return
 	}
+	defer f.Close()
 
-	records, err := ParseAll(bytes.NewReader(data))
+	records, err := NewReader(f).ReadAll()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
 	if len(records) <= 0 {
-		t.Errorf("recod length mismatch: %d isn't enough records", len(records))
+		t.Errorf("record length mismatch: %d isn't enough records", len(records))
 		return
 	}
 
