@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+// Reader parses WARC records from an underlying scanner.
+// Create a new reader with NewReader
 type Reader struct {
 	scanner *bufio.Scanner    // scanner to pull tokens from
 	phase   scanPhase         // current phase of record parsing
