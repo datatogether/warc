@@ -33,6 +33,15 @@ type Record interface {
 	GetContent() io.Reader
 	// Write this record to a given writer
 	Write(io.Writer) error
+	// Bytes returns the record formatted as a byte slice
+	Bytes() ([]byte, error)
+}
+
+// recordBytes returns the record formatted as a byte slice
+func recordBytes(r Record) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	err := r.Write(buf)
+	return buf.Bytes(), err
 }
 
 // A 'warcinfo' record describes the records that follow it, up through end
@@ -61,6 +70,7 @@ func (r WARCInfo) GetRecordID() string     { return r.WARCRecordId }
 func (r WARCInfo) GetDate() time.Time      { return r.WARCDate }
 func (r WARCInfo) GetContentLength() int64 { return r.ContentLength }
 func (r WARCInfo) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r WARCInfo) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r WARCInfo) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:      r.WARCRecordId,
@@ -104,6 +114,7 @@ func (r Response) GetRecordID() string     { return r.WARCRecordId }
 func (r Response) GetDate() time.Time      { return r.WARCDate }
 func (r Response) GetContentLength() int64 { return r.ContentLength }
 func (r Response) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r Response) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r Response) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:               r.WARCRecordId,
@@ -155,6 +166,7 @@ func (r Resource) GetRecordID() string     { return r.WARCRecordId }
 func (r Resource) GetDate() time.Time      { return r.WARCDate }
 func (r Resource) GetContentLength() int64 { return r.ContentLength }
 func (r Resource) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r Resource) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r Resource) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:               r.WARCRecordId,
@@ -202,6 +214,7 @@ func (r Request) GetRecordID() string     { return r.WARCRecordId }
 func (r Request) GetDate() time.Time      { return r.WARCDate }
 func (r Request) GetContentLength() int64 { return r.ContentLength }
 func (r Request) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r Request) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r Request) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:               r.WARCRecordId,
@@ -255,6 +268,7 @@ func (r Metadata) GetRecordID() string     { return r.WARCRecordId }
 func (r Metadata) GetDate() time.Time      { return r.WARCDate }
 func (r Metadata) GetContentLength() int64 { return r.ContentLength }
 func (r Metadata) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r Metadata) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r Metadata) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:     r.WARCRecordId,
@@ -306,6 +320,7 @@ func (r Revisit) GetRecordID() string     { return r.WARCRecordId }
 func (r Revisit) GetDate() time.Time      { return r.WARCDate }
 func (r Revisit) GetContentLength() int64 { return r.ContentLength }
 func (r Revisit) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r Revisit) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r Revisit) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:      r.WARCRecordId,
@@ -361,6 +376,7 @@ func (r Conversion) GetRecordID() string     { return r.WARCRecordId }
 func (r Conversion) GetDate() time.Time      { return r.WARCDate }
 func (r Conversion) GetContentLength() int64 { return r.ContentLength }
 func (r Conversion) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r Conversion) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r Conversion) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:      r.WARCRecordId,
@@ -409,6 +425,7 @@ func (r Continuation) GetRecordID() string     { return r.WARCRecordId }
 func (r Continuation) GetDate() time.Time      { return r.WARCDate }
 func (r Continuation) GetContentLength() int64 { return r.ContentLength }
 func (r Continuation) GetContent() io.Reader   { return bytes.NewReader(r.Content) }
+func (r Continuation) Bytes() ([]byte, error)  { return recordBytes(r) }
 func (r Continuation) Write(w io.Writer) error {
 	err := writeHeader(w, r.Type(), map[string]string{
 		warc_record_id:            r.WARCRecordId,
