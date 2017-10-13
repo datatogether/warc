@@ -3,6 +3,7 @@ package warc
 import (
 	"bytes"
 	"io"
+	"strconv"
 	"time"
 )
 
@@ -18,24 +19,33 @@ type Record struct {
 
 // Return the type of record
 func (r *Record) Type() RecordType {
-	return recordType(r.Headers[warc_type])
+	return recordType(r.Headers[warcType])
 }
 
 // The ID for this record
 func (r *Record) Id() string {
-	return r.Headers[warc_record_id]
+	return r.Headers[warcRecordId]
 }
 
-// Datestamp of record creation
+// Datestamp of record creation, returns empty (zero) time if
+// no Warc-Date header is present, or if the header is an
+// invalid timestamp
 func (r *Record) Date() time.Time {
-	// TODO
-	return time.Now()
+	t, err := time.Parse(time.RFC3339, r.Headers[warcDate])
+	if err != nil {
+		return time.Time{}
+	}
+	return t
 }
 
-// Length of content block in bytes
+// Length of content block in bytes, returns 0 if
+// Content-Length header is missing or invalid
 func (r *Record) ContentLength() int64 {
-	// TODO
-	return 0
+	len, err := strconv.ParseInt(r.Headers[contentLength], 10, 64)
+	if err != nil {
+		return 0
+	}
+	return len
 }
 
 // Write this record to a given writer
