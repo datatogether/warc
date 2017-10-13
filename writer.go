@@ -3,7 +3,7 @@ package warc
 import (
 	"fmt"
 	"io"
-	"strconv"
+	// "strconv"
 )
 
 // WriteRecords calls Write on each record to w
@@ -17,14 +17,11 @@ func WriteRecords(w io.Writer, records []Record) error {
 }
 
 // WriteHeader writes a fully formed header with version to w
-func writeHeader(w io.Writer, t RecordType, fields map[string]string) error {
-	if err := writeWarcVersion(w); err != nil {
+func writeHeader(w io.Writer, r *Record) error {
+	if err := writeWarcVersion(w, r); err != nil {
 		return err
 	}
-	if err := writeField(w, warc_type, t.String()); err != nil {
-		return err
-	}
-	if err := writeFields(w, fields); err != nil {
+	if err := writeFields(w, r.Headers); err != nil {
 		return err
 	}
 	if _, err := io.WriteString(w, "\r\n"); err != nil {
@@ -46,8 +43,8 @@ func writeBlock(w io.Writer, r []byte) error {
 }
 
 // writeWarcVersion writes the warc version header
-func writeWarcVersion(w io.Writer) error {
-	_, err := io.WriteString(w, "WARC/1.0\r\n")
+func writeWarcVersion(w io.Writer, r *Record) error {
+	_, err := io.WriteString(w, r.Version+"\r\n")
 	return err
 }
 
@@ -73,11 +70,11 @@ func writeField(w io.Writer, key, value string) error {
 	return err
 }
 
-// convenience func to convert int64s to a string
-func int64String(i int64) string {
-	return strconv.FormatInt(i, 10)
-}
+// // convenience func to convert int64s to a string
+// func int64String(i int64) string {
+// 	return strconv.FormatInt(i, 10)
+// }
 
-func intString(i int) string {
-	return strconv.FormatInt(int64(i), 10)
-}
+// func intString(i int) string {
+// 	return strconv.FormatInt(int64(i), 10)
+// }

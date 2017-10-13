@@ -3,39 +3,44 @@ package warc
 import (
 	"bufio"
 	"bytes"
+	"compress/bzip2"
+	"compress/gzip"
 	"io"
+	"io/ioutil"
 )
 
 // Reader parses WARC records from an underlying scanner.
 // Create a new reader with NewReader
 type Reader struct {
-	scanner *bufio.Scanner    // scanner to pull tokens from
-	phase   scanPhase         // current phase of record parsing
-	version string            // current record verion
-	headers map[string]string // current record headers
-	key     string            // current header key to find the value of
-	content []byte            // current record content
+	rc      io.ReadCloser  // raw io.readerCloser
+	scanner *bufio.Scanner // scanner to pull tokens from
+	phase   scanPhase
 }
 
 // NewReader creates a new WARC reader from an io.Reader
 // Always use NewReader, (instead of manually allocating a reader)
-func NewReader(r io.Reader) *Reader {
+func NewReader(r io.Reader) (*Reader, error) {
+	rc, err := decompress(r)
+	if err != nil {
+		return nil, err
+	}
+
 	rdr := &Reader{
-		scanner: bufio.NewScanner(r),
-		headers: map[string]string{},
+		rc:      rc,
+		scanner: bufio.NewScanner(rc),
 	}
 	rdr.scanner.Split(rdr.split)
-	return rdr
+	return rdr, nil
 }
 
 // Read a record, will return nil, io.EOF to signal
 // no more records
 func (r *Reader) Read() (Record, error) {
-	// rec, err := r.parseRecord()
+	// rec, err := r.readRecord()
 	// if err == nil {
 	// 	fmt.Println(string(rec.(*Resource).Content))
 	// }
-	return r.parseRecord()
+	return r.readRecord()
 }
 
 // Consume the entire reader, returning a slice of records
@@ -63,52 +68,41 @@ const (
 	scanPhaseContent
 )
 
-func (r *Reader) parseRecord() (Record, error) {
+func (r *Reader) readRecord() (rec Record, err error) {
+	var key string
+	rec = Record{
+		Headers: map[string]string{},
+	}
+
 	for r.scanner.Scan() {
 		// need to copy here. trust.
-		token := make([]byte, len(r.scanner.Bytes()))
-		copy(token, r.scanner.Bytes())
+		// token := make([]byte, len(r.scanner.Bytes()))
+		// copy(token, r.scanner.Bytes())
+		token := r.scanner.Bytes()
 
 		switch r.phase {
 		case scanPhaseVersion:
-			r.version = string(bytes.TrimSpace(token))
+			rec.Version = string(bytes.TrimSpace(token))
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseHeaderKey:
 			if bytes.Equal(token, crlf) {
 				r.phase = scanPhaseContent
 			} else {
-				r.key = string(bytes.ToLower(bytes.TrimSpace(token)))
+				// key = string(bytes.ToLower(bytes.TrimSpace(token)))
+				key = string(bytes.TrimSpace(token))
 				r.phase = scanPhaseHeaderValue
 			}
 		case scanPhaseHeaderValue:
-			r.headers[r.key] = string(bytes.TrimSpace(token))
-			r.key = ""
+			rec.Headers[key] = string(bytes.TrimSpace(token))
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseContent:
-			r.content = token
-			return r.record()
+			rec.Content = token
+			r.phase = scanPhaseVersion
+			return
 		}
 	}
 
-	return nil, io.EOF
-}
-
-// Generate a record from current reader state & reset the record
-func (r *Reader) record() (Record, error) {
-	defer r.reset()
-	if r.scanner.Err() != nil {
-		return nil, r.scanner.Err()
-	}
-	return newRecord(r.headers, r.content)
-}
-
-// reset the reader for another record
-func (r *Reader) reset() {
-	r.phase = scanPhaseVersion
-	r.key = ""
-	r.version = ""
-	r.headers = map[string]string{}
-	r.content = nil
+	return rec, io.EOF
 }
 
 func (r *Reader) split(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -191,4 +185,56 @@ func dropCR(data []byte) []byte {
 		return data[0 : len(data)-1]
 	}
 	return data
+}
+
+const (
+	compressionNone = iota
+	compressionBZIP
+	compressionGZIP
+)
+
+// guessCompression returns the compression type of a data stream by matching
+// the first two bytes with the magic numbers of compression formats.
+func guessCompression(b *bufio.Reader) (int, error) {
+	magic, err := b.Peek(2)
+	if err != nil {
+		if err == io.EOF {
+			err = nil
+		}
+		return compressionNone, err
+	}
+	switch {
+	case magic[0] == 0x42 && magic[1] == 0x5a:
+		return compressionBZIP, nil
+	case magic[0] == 0x1f && magic[1] == 0x8b:
+		return compressionGZIP, nil
+	}
+	return compressionNone, nil
+}
+
+// decompress automatically decompresses data streams and makes sure the result
+// obeys the io.ReadCloser interface. This way callers don't need to check
+// whether the underlying reader has a Close() function or not, they just call
+// defer Close() on the result.
+func decompress(r io.Reader) (res io.ReadCloser, err error) {
+	// Create a buffered reader to peek the stream's magic number.
+	dataReader := bufio.NewReader(r)
+	compr, err := guessCompression(dataReader)
+	if err != nil {
+		return nil, err
+	}
+	switch compr {
+	case compressionGZIP:
+		gzipReader, err := gzip.NewReader(dataReader)
+		if err != nil {
+			return nil, err
+		}
+		res = gzipReader
+	case compressionBZIP:
+		bzipReader := bzip2.NewReader(dataReader)
+		res = ioutil.NopCloser(bzipReader)
+	case compressionNone:
+		res = ioutil.NopCloser(dataReader)
+	}
+	return res, err
 }

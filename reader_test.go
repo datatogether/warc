@@ -13,7 +13,13 @@ func TestReadAll(t *testing.T) {
 	}
 	defer f.Close()
 
-	records, err := NewReader(f).ReadAll()
+	rdr, err := NewReader(f)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	records, err := rdr.ReadAll()
 	if err != nil {
 		t.Error(err)
 		return
