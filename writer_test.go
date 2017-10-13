@@ -1,9 +1,15 @@
 package warc
 
 import (
+	"bytes"
+	"fmt"
 	"os"
 	"testing"
+
+	dmp "github.com/sergi/go-diff/diffmatchpatch"
 )
+
+const testRecordId = "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>"
 
 func TestWarcWrite(t *testing.T) {
 	f, err := os.Open("testdata/test.warc")
@@ -36,207 +42,167 @@ func TestWarcWrite(t *testing.T) {
 		t.Error(err)
 		return
 	}
-
 }
 
-const WARCINFO_RECORD = `
-WARC/1.0\r\n
-WARC-Type: warcinfo\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Filename: testfile.warc.gz\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-Content-Type: application/warc-fields\r\n
-Content-Length: 86\r\n
-\r\n
-software: recorder test\r\n
-format: WARC File Format 1.0\r\n
-json-metadata: {"foo": "bar"}\r\n
-\r\n
-\r\n
-`
+func TestWarcinfoRecord(t *testing.T) {
+	rec := &Record{
+		Version: WARC_VERSION,
+		Headers: map[string]string{
+			warcRecordId:  testRecordId,
+			warcType:      RecordTypeWarcInfo.String(),
+			warcFilename:  "testfile.warc.gz",
+			warcDate:      "2000-01-01T00:00:00Z",
+			contentType:   "application/warc-fields",
+			contentLength: "86",
+		},
+		Content: []byte("software: recorder test\r\n" +
+			"format: WARC File Format 1.0\r\n" +
+			"json-metadata: {\"foo\": \"bar\"}\r\n"),
+	}
 
-const RESPONSE_RECORD = `
-WARC/1.0\r\n
-WARC-Type: response\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: http://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r\n
-WARC-Block-Digest: sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74\r\n
-Content-Type: application/http; msgtype=response\r\n
-Content-Length: 97\r\n
-\r\n
-HTTP/1.0 200 OK\r\n
-Content-Type: text/plain; charset="UTF-8"\r\n
-Custom-Header: somevalue\r\n
-\r\n
-some\n
-text\r\n
-\r\n
-`
+	if err := testWriteRecord(rec, WARCINFO_RECORD); err != nil {
+		t.Error(err)
+	}
+}
 
-const RESPONSE_RECORD_2 = `
-WARC/1.0\r\n
-WARC-Type: response\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: http://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r\n
-WARC-Block-Digest: sha1:U6KNJY5MVNU3IMKED7FSO2JKW6MZ3QUX\r\n
-Content-Type: application/http; msgtype=response\r\n
-Content-Length: 145\r\n
-\r\n
-HTTP/1.0 200 OK\r\n
-Content-Type: text/plain; charset="UTF-8"\r\n
-Content-Length: 9\r\n
-Custom-Header: somevalue\r\n
-Content-Encoding: x-unknown\r\n
-\r\n
-some\n
-text\r\n
-\r\n
-`
+func TestRequestRecord(t *testing.T) {
+	rec := &Record{
+		Version: WARC_VERSION,
+		Headers: map[string]string{
+			warcType:          RecordTypeRequest.String(),
+			warcRecordId:      testRecordId,
+			warcTargetUri:     "http://example.com/",
+			warcDate:          "2000-01-01T00:00:00Z",
+			warcPayloadDigest: "sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+			warcBlockDigest:   "sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO",
+			contentType:       "application/http; msgtype=request",
+			contentLength:     "54",
+		},
+		Content: []byte("GET / HTTP/1.0\r\n" +
+			"User-Agent: foo\r\n" +
+			"Host: example.com\r\n" +
+			"\r\n"),
+	}
 
-const REQUEST_RECORD = `
-WARC/1.0\r\n
-WARC-Type: request\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: http://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ\r\n
-WARC-Block-Digest: sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO\r\n
-Content-Type: application/http; msgtype=request\r\n
-Content-Length: 54\r\n
-\r\n
-GET / HTTP/1.0\r\n
-User-Agent: foo\r\n
-Host: example.com\r\n
-\r\n
-\r\n
-\r\n
-`
+	if err := testWriteRecord(rec, REQUEST_RECORD); err != nil {
+		t.Error(err)
+	}
+}
 
-const REQUEST_RECORD_2 = `
-WARC/1.0\r\n
-WARC-Type: request\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: http://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:R5VZAKIE53UW5VGK43QJIFYS333QM5ZA\r\n
-WARC-Block-Digest: sha1:L7SVBUPPQ6RH3ANJD42G5JL7RHRVZ5DV\r\n
-Content-Type: application/http; msgtype=request\r\n
-Content-Length: 92\r\n
-\r\n
-POST /path HTTP/1.0\r\n
-Content-Type: application/json\r\n
-Content-Length: 17\r\n
-\r\n
-{"some": "value"}\r\n
-\r\n
-`
+func TestResponseRecord(t *testing.T) {
+	rec := &Record{
+		Version: WARC_VERSION,
+		Headers: map[string]string{
+			contentLength:     "97",
+			contentType:       "application/http; msgtype=response",
+			warcBlockDigest:   "sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74",
+			warcDate:          "2000-01-01T00:00:00Z",
+			warcPayloadDigest: "sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O",
+			warcRecordId:      "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>",
+			warcTargetUri:     "http://example.com/",
+			warcType:          RecordTypeResponse.String(),
+		},
+		Content: []byte("HTTP/1.0 200 OK\r\n" +
+			"Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
+			"Custom-Header: somevalue\r\n" +
+			"\r\n" +
+			"some\n" +
+			"text"),
+	}
 
-const REVISIT_RECORD_1 = `
-WARC/1.0\r\n
-WARC-Type: revisit\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: http://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Profile: http://netpreserve.org/warc/1.0/revisit/identical-payload-digest\r\n
-WARC-Refers-To-Target-URI: http://example.com/foo\r\n
-WARC-Refers-To-Date: 1999-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r\n
-WARC-Block-Digest: sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ\r\n
-Content-Type: application/http; msgtype=response\r\n
-Content-Length: 0\r\n
-\r\n
-\r\n
-\r\n
-`
+	if err := testWriteRecord(rec, RESPONSE_RECORD); err != nil {
+		t.Error(err)
+	}
+}
 
-const REVISIT_RECORD_2 = `
-WARC/1.0\r\n
-WARC-Type: revisit\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: http://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Profile: http://netpreserve.org/warc/1.0/revisit/identical-payload-digest\r\n
-WARC-Refers-To-Target-URI: http://example.com/foo\r\n
-WARC-Refers-To-Date: 1999-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r\n
-WARC-Block-Digest: sha1:A6J5UTI2QHHCZFCFNHQHCDD3JJFKP53V\r\n
-Content-Type: application/http; msgtype=response\r\n
-Content-Length: 88\r\n
-\r\n
-HTTP/1.0 200 OK\r\n
-Content-Type: text/plain; charset="UTF-8"\r\n
-Custom-Header: somevalue\r\n
-\r\n
-\r\n
-\r\n
-`
+func testWriteRecord(r *Record, expect []byte) error {
+	buf := &bytes.Buffer{}
+	if err := r.Write(buf); err != nil {
+		return fmt.Errorf("error writing record: %s", err.Error())
+	}
 
-const RESOURCE_RECORD = `
-WARC/1.0\r\n
-WARC-Type: resource\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: ftp://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r\n
-WARC-Block-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r\n
-Content-Type: text/plain\r\n
-Content-Length: 9\r\n
-\r\n
-some\n
-text\r\n
-\r\n
-`
+	if r.ContentLength() != len(r.Content) {
+		return fmt.Errorf("Record Content-Length mistmatch: %d != %d", r.ContentLength(), len(r.Content))
+	}
 
-const METADATA_RECORD = `
-WARC/1.0\r\n
-WARC-Type: metadata\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: http://example.com/\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:ZOLBLKAQVZE5DXH56XE6EH6AI6ZUGDPT\r\n
-WARC-Block-Digest: sha1:ZOLBLKAQVZE5DXH56XE6EH6AI6ZUGDPT\r\n
-Content-Type: application/json\r\n
-Content-Length: 67\r\n
-\r\n
-{"metadata": {"nested": "obj", "list": [1, 2, 3], "length": "123"}}\r\n
-\r\n
-`
+	if len(buf.Bytes()) != len(expect) {
+		dmp := dmp.New()
+		diffs := dmp.DiffMain(buf.String(), string(expect), true)
+		fmt.Println("error diff output:")
+		fmt.Println(dmp.DiffPrettyText(diffs))
 
-const DNS_RESPONSE_RECORD = `
-WARC/1.0\r\n
-WARC-Type: response\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: dns:google.com\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:2AAVJYKKIWK5CF6EWE7PH63EMNLO44TH\r\n
-WARC-Block-Digest: sha1:2AAVJYKKIWK5CF6EWE7PH63EMNLO44TH\r\n
-Content-Type: application/http; msgtype=response\r\n
-Content-Length: 147\r\n
-\r\n
-20170509000739\n
-google.com.     185 IN  A   209.148.113.239\n
-google.com.     185 IN  A   209.148.113.238\n
-google.com.     185 IN  A   209.148.113.250\n
-\r\n\r\n
-`
-const DNS_RESOURCE_RECORD = `
-WARC/1.0\r\n
-WARC-Type: resource\r\n
-WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n
-WARC-Target-URI: dns:google.com\r\n
-WARC-Date: 2000-01-01T00:00:00Z\r\n
-WARC-Payload-Digest: sha1:2AAVJYKKIWK5CF6EWE7PH63EMNLO44TH\r\n
-WARC-Block-Digest: sha1:2AAVJYKKIWK5CF6EWE7PH63EMNLO44TH\r\n
-Content-Type: application/warc-record\r\n
-Content-Length: 147\r\n
-\r\n
-20170509000739\n
-google.com.     185 IN  A   209.148.113.239\n
-google.com.     185 IN  A   209.148.113.238\n
-google.com.     185 IN  A   209.148.113.250\n
-\r\n\r\n
-`
+		for i, b := range buf.Bytes() {
+			if b != expect[i] {
+				return fmt.Errorf("byte length mismatch. expected: %d, got: %d. first error at index %d: '%#v'", len(expect), len(buf.Bytes()), i, b)
+			}
+		}
+
+		return fmt.Errorf("byte length mismatch. expected: %d, got: %d, ", len(expect), len(buf.Bytes()))
+	}
+
+	if !bytes.Equal(buf.Bytes(), expect) {
+		return fmt.Errorf("byte mismatch: %s != %s", buf.String(), string(expect))
+	}
+
+	return nil
+}
+
+// func testRequestResponseConcur(t *testing.T) {
+// }
+
+// func testReadFromStreamNoContentLength(t *testing.T) {
+
+// }
+
+func validateResponse(r *Record) error {
+	return nil
+}
+
+var WARCINFO_RECORD = []byte("WARC/1.0\r\n" +
+	"Content-Length: 86\r\n" +
+	"Content-Type: application/warc-fields\r\n" +
+	"Warc-Date: 2000-01-01T00:00:00Z\r\n" +
+	"Warc-Filename: testfile.warc.gz\r\n" +
+	"Warc-Record-Id: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n" +
+	"Warc-Type: warcinfo\r\n" +
+	"\r\n" +
+	"software: recorder test\r\n" +
+	"format: WARC File Format 1.0\r\n" +
+	"json-metadata: {\"foo\": \"bar\"}\r\n" +
+	"\r\n" +
+	"\r\n")
+
+var REQUEST_RECORD = []byte("WARC/1.0\r\n" +
+	"Content-Length: 54\r\n" +
+	"Content-Type: application/http; msgtype=request\r\n" +
+	"Warc-Block-Digest: sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO\r\n" +
+	"Warc-Date: 2000-01-01T00:00:00Z\r\n" +
+	"Warc-Payload-Digest: sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ\r\n" +
+	"Warc-Record-Id: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n" +
+	"Warc-Target-Uri: http://example.com/\r\n" +
+	"Warc-Type: request\r\n" +
+	"\r\n" +
+	"GET / HTTP/1.0\r\n" +
+	"User-Agent: foo\r\n" +
+	"Host: example.com\r\n" +
+	"\r\n" +
+	"\r\n" +
+	"\r\n")
+
+var RESPONSE_RECORD = []byte("WARC/1.0\r\n" +
+	"Content-Length: 97\r\n" +
+	"Content-Type: application/http; msgtype=response\r\n" +
+	"Warc-Block-Digest: sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74\r\n" +
+	"Warc-Date: 2000-01-01T00:00:00Z\r\n" +
+	"Warc-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r\n" +
+	"Warc-Record-Id: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r\n" +
+	"Warc-Target-Uri: http://example.com/\r\n" +
+	"Warc-Type: response\r\n" +
+	"\r\n" +
+	"HTTP/1.0 200 OK\r\n" +
+	"Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
+	"Custom-Header: somevalue\r\n" +
+	"\r\n" +
+	"some\n" +
+	"text\r\n" +
+	"\r\n")

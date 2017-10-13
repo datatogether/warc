@@ -3,7 +3,7 @@ package warc
 import (
 	"fmt"
 	"io"
-	// "strconv"
+	"sort"
 )
 
 // WriteRecords calls Write on each record to w
@@ -51,8 +51,18 @@ func writeWarcVersion(w io.Writer, r *Record) error {
 // writeDefinedFields takes a map of token constants to values, and writes them to w
 // it skips fields who's value is ""
 func writeFields(w io.Writer, fields map[string]string) error {
-	for field, value := range fields {
-		if err := writeField(w, field, value); err != nil {
+	keys := make([]string, len(fields))
+	i := 0
+	for field, _ := range fields {
+		keys[i] = field
+		i++
+	}
+
+	// sort fields alphabetically
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	for _, key := range keys {
+		if err := writeField(w, key, fields[key]); err != nil {
 			return err
 		}
 	}
@@ -69,12 +79,3 @@ func writeField(w io.Writer, key, value string) error {
 	_, err := io.WriteString(w, ln)
 	return err
 }
-
-// // convenience func to convert int64s to a string
-// func int64String(i int64) string {
-// 	return strconv.FormatInt(i, 10)
-// }
-
-// func intString(i int) string {
-// 	return strconv.FormatInt(int64(i), 10)
-// }

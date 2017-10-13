@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const WARC_VERSION = "WARC/1.0"
+
 // A Record consists of a version indicator (eg: WARC/1.0), zero or more headers,
 // and possibly a content block.
 // Upgrades to specific types of records can be done using type assertions
@@ -40,12 +42,12 @@ func (r *Record) Date() time.Time {
 
 // Length of content block in bytes, returns 0 if
 // Content-Length header is missing or invalid
-func (r *Record) ContentLength() int64 {
+func (r *Record) ContentLength() int {
 	len, err := strconv.ParseInt(r.Headers[contentLength], 10, 64)
 	if err != nil {
 		return 0
 	}
-	return len
+	return int(len)
 }
 
 // Write this record to a given writer
