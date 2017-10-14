@@ -31,10 +31,8 @@ func writeHeader(w io.Writer, r *Record) error {
 }
 
 // WriteBlock writes all of reader (record content) to w, followed by 2 CRLF's
-func writeBlock(w io.Writer, r []byte) error {
-	// fmt.Println(string(r))
-	// fmt.Println("------")
-	if _, err := w.Write(r); err != nil {
+func writeBlock(w io.Writer, r io.Reader) error {
+	if _, err := io.Copy(w, r); err != nil {
 		return err
 	}
 	// write 2xCRLF
@@ -44,7 +42,7 @@ func writeBlock(w io.Writer, r []byte) error {
 
 // writeWarcVersion writes the warc version header
 func writeWarcVersion(w io.Writer, r *Record) error {
-	_, err := io.WriteString(w, r.Version+"\r\n")
+	_, err := io.WriteString(w, r.Format.String()+"\r\n")
 	return err
 }
 

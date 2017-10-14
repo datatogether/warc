@@ -66,7 +66,8 @@ func TestWarcWrite(t *testing.T) {
 
 func TestWarcinfoRecord(t *testing.T) {
 	rec := &Record{
-		Version: WARC_VERSION,
+		Format: RecordFormatWarc,
+		Type:   RecordTypeWarcInfo,
 		Headers: map[string]string{
 			warcRecordId:  testRecordId,
 			warcType:      RecordTypeWarcInfo.String(),
@@ -75,9 +76,9 @@ func TestWarcinfoRecord(t *testing.T) {
 			contentType:   "application/warc-fields",
 			contentLength: "86",
 		},
-		Content: []byte("software: recorder test\r\n" +
+		Content: bytes.NewBuffer([]byte("software: recorder test\r\n" +
 			"format: WARC File Format 1.0\r\n" +
-			"json-metadata: {\"foo\": \"bar\"}\r\n"),
+			"json-metadata: {\"foo\": \"bar\"}\r\n")),
 	}
 
 	if err := testWriteRecord(rec, WARCINFO_RECORD); err != nil {
@@ -87,7 +88,8 @@ func TestWarcinfoRecord(t *testing.T) {
 
 func TestRequestRecord(t *testing.T) {
 	rec := &Record{
-		Version: WARC_VERSION,
+		Format: RecordFormatWarc,
+		Type:   RecordTypeRequest,
 		Headers: map[string]string{
 			warcType:          RecordTypeRequest.String(),
 			warcRecordId:      testRecordId,
@@ -98,10 +100,10 @@ func TestRequestRecord(t *testing.T) {
 			contentType:       "application/http; msgtype=request",
 			contentLength:     "54",
 		},
-		Content: []byte("GET / HTTP/1.0\r\n" +
+		Content: bytes.NewBuffer([]byte("GET / HTTP/1.0\r\n" +
 			"User-Agent: foo\r\n" +
 			"Host: example.com\r\n" +
-			"\r\n"),
+			"\r\n")),
 	}
 
 	if err := testWriteRecord(rec, REQUEST_RECORD); err != nil {
@@ -111,7 +113,8 @@ func TestRequestRecord(t *testing.T) {
 
 func TestResponseRecord(t *testing.T) {
 	rec := &Record{
-		Version: WARC_VERSION,
+		Format: RecordFormatWarc,
+		Type:   RecordTypeResponse,
 		Headers: map[string]string{
 			contentLength:     "97",
 			contentType:       "application/http; msgtype=response",
@@ -122,12 +125,12 @@ func TestResponseRecord(t *testing.T) {
 			warcTargetUri:     "http://example.com/",
 			warcType:          RecordTypeResponse.String(),
 		},
-		Content: []byte("HTTP/1.0 200 OK\r\n" +
+		Content: bytes.NewBuffer([]byte("HTTP/1.0 200 OK\r\n" +
 			"Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
 			"Custom-Header: somevalue\r\n" +
 			"\r\n" +
 			"some\n" +
-			"text"),
+			"text")),
 	}
 
 	if err := testWriteRecord(rec, RESPONSE_RECORD); err != nil {
@@ -136,13 +139,13 @@ func TestResponseRecord(t *testing.T) {
 }
 
 func testWriteRecord(r *Record, expect []byte) error {
+	if r.ContentLength() != r.Content.Len() {
+		return fmt.Errorf("Record Content-Length mistmatch: %d != %d", r.ContentLength(), r.Content.Len())
+	}
+
 	buf := &bytes.Buffer{}
 	if err := r.Write(buf); err != nil {
 		return fmt.Errorf("error writing record: %s", err.Error())
-	}
-
-	if r.ContentLength() != len(r.Content) {
-		return fmt.Errorf("Record Content-Length mistmatch: %d != %d", r.ContentLength(), len(r.Content))
 	}
 
 	if len(buf.Bytes()) != len(expect) {

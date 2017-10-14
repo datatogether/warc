@@ -80,7 +80,7 @@ func (r *Reader) readRecord() (rec Record, err error) {
 
 		switch r.phase {
 		case scanPhaseVersion:
-			rec.Version = string(bytes.TrimSpace(token))
+			rec.Format = recordFormat(string(bytes.TrimSpace(token)))
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseHeaderKey:
 			if bytes.Equal(token, crlf) {
@@ -91,12 +91,16 @@ func (r *Reader) readRecord() (rec Record, err error) {
 			}
 		case scanPhaseHeaderValue:
 			rec.Headers[key] = string(bytes.TrimSpace(token))
+			if key == warcType {
+				rec.Type = recordType(rec.Headers[key])
+			}
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseContent:
 			// need to copy here b/c the underlying bytes shift as the buffer
 			// moves through the file
-			rec.Content = make([]byte, len(r.scanner.Bytes()))
-			copy(rec.Content, r.scanner.Bytes())
+			buf := make([]byte, len(r.scanner.Bytes()))
+			copy(buf, r.scanner.Bytes())
+			rec.Content = bytes.NewBuffer(buf)
 			r.phase = scanPhaseVersion
 			return
 		}

@@ -7,22 +7,30 @@ import (
 	"time"
 )
 
-const WARC_VERSION = "WARC/1.0"
-
 // A Record consists of a version indicator (eg: WARC/1.0), zero or more headers,
 // and possibly a content block.
 // Upgrades to specific types of records can be done using type assertions
 // and/or the Type method.
 type Record struct {
-	Version string
-	Headers map[string]string
-	Content []byte
+	Format      RecordFormat
+	Type        RecordType
+	Headers     map[string]string
+	HttpHeaders map[string]string
+	Length      int
+	Content     *bytes.Buffer
 }
 
-// Return the type of record
-func (r *Record) Type() RecordType {
-	return recordType(r.Headers[warcType])
-}
+// (self.format, self.rec_type, self.rec_headers, self.raw_stream,
+//          self.http_headers, self.content_type, self.length) = args
+
+// payload=None,
+//                            length=None,
+//                            warc_content_type='',
+//                            warc_headers_dict={},
+//                            warc_headers=None,
+//                            http_headers=None
+
+// func CreateWarcRecord(url string, t RecordType, )
 
 // The ID for this record
 func (r *Record) Id() string {
@@ -73,6 +81,35 @@ func (r *Record) Bytes() ([]byte, error) {
 // material (e.g., metadata, transformed content) that provides additional
 // information about archived content.
 type Records []Record
+
+// RecordFormat determines different formats for records, this is
+// for any later support of ARC files, should we need to add it.
+type RecordFormat int
+
+const (
+	// Default Record Format is the Warc Format 1.0
+	RecordFormatWarc RecordFormat = iota
+	// unknown / errored record format
+	RecordFormatUnknown
+)
+
+func (r RecordFormat) String() string {
+	switch r {
+	case RecordFormatWarc:
+		return "WARC/1.0"
+	default:
+		return ""
+	}
+}
+
+func recordFormat(s string) RecordFormat {
+	switch s {
+	case "WARC/1.0":
+		return RecordFormatWarc
+	default:
+		return RecordFormatUnknown
+	}
+}
 
 // RecordType enumerates different types of WARC Records
 type RecordType int
