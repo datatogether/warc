@@ -2,6 +2,8 @@ package warc
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/base32"
 	"fmt"
 	"os"
 	"testing"
@@ -167,6 +169,21 @@ func testWriteRecord(r *Record, expect []byte) error {
 		return fmt.Errorf("byte mismatch: %s != %s", buf.String(), string(expect))
 	}
 
+	if r.Headers[warcBlockDigest] != "" {
+		checkSha1Hash(r.Content.Bytes(), r.Headers[warcBlockDigest])
+	}
+
+	return nil
+}
+
+func checkSha1Hash(content []byte, hashstr string) error {
+	hash := sha1.Sum(content)
+	buf := &bytes.Buffer{}
+	base32.NewEncoder(base32.StdEncoding, buf).Write(hash[:])
+	s := fmt.Sprintf("sha1:%s", buf.String())
+	if s != hashstr {
+		return fmt.Errorf("hash mismatch. expected '%s'. got: '%s'", hashstr, s)
+	}
 	return nil
 }
 

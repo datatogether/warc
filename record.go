@@ -12,12 +12,11 @@ import (
 // Upgrades to specific types of records can be done using type assertions
 // and/or the Type method.
 type Record struct {
-	Format      RecordFormat
-	Type        RecordType
-	Headers     map[string]string
-	HttpHeaders map[string]string
-	Length      int
-	Content     *bytes.Buffer
+	Format  RecordFormat
+	Type    RecordType
+	Headers map[string]string
+	Length  int
+	Content *bytes.Buffer
 }
 
 // (self.format, self.rec_type, self.rec_headers, self.raw_stream,
@@ -80,7 +79,7 @@ func (r *Record) Bytes() ([]byte, error) {
 // hostname lookup results, standalone files, etc. — or is synthesized
 // material (e.g., metadata, transformed content) that provides additional
 // information about archived content.
-type Records []Record
+type Records []*Record
 
 // RecordFormat determines different formats for records, this is
 // for any later support of ARC files, should we need to add it.
