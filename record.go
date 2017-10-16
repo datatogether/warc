@@ -15,7 +15,6 @@ type Record struct {
 	Format  RecordFormat
 	Type    RecordType
 	Headers map[string]string
-	Length  int
 	Content *bytes.Buffer
 }
 
@@ -51,6 +50,11 @@ func (r *Record) ContentLength() int {
 func (r *Record) Write(w io.Writer) error {
 	r.Headers[contentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
 	r.Headers[warcType] = r.Type.String()
+	switch r.Type {
+	case RecordTypeResponse, RecordTypeRevisit:
+		r.Headers[warcBlockDigest] = sha1Digest(r.Content.Bytes())
+	}
+
 	if err := writeHeader(w, r); err != nil {
 		return err
 	}

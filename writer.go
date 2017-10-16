@@ -2,9 +2,15 @@ package warc
 
 import (
 	"fmt"
+	"github.com/pborman/uuid"
 	"io"
+	"net/http"
 	"sort"
 )
+
+func NewUuid() string {
+	return fmt.Sprintf("<urn:uuid:%s>", uuid.New())
+}
 
 // WriteRecords calls Write on each record to w
 func WriteRecords(w io.Writer, records []Record) error {
@@ -44,6 +50,15 @@ func writeBlock(w io.Writer, r io.Reader) error {
 func writeWarcVersion(w io.Writer, r *Record) error {
 	_, err := io.WriteString(w, r.Format.String()+"\r\n")
 	return err
+}
+
+func writeHttpHeaders(w io.Writer, headers http.Header) error {
+	for k, _ := range headers {
+		if _, err := io.WriteString(w, fmt.Sprintf("%s: %s\r\n", k, headers.Get(k))); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // writeDefinedFields takes a map of token constants to values, and writes them to w
