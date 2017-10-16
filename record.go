@@ -19,16 +19,6 @@ type Record struct {
 	Content *bytes.Buffer
 }
 
-// (self.format, self.rec_type, self.rec_headers, self.raw_stream,
-//          self.http_headers, self.content_type, self.length) = args
-
-// payload=None,
-//                            length=None,
-//                            warc_content_type='',
-//                            warc_headers_dict={},
-//                            warc_headers=None,
-//                            http_headers=None
-
 // func CreateWarcRecord(url string, t RecordType, )
 
 // The ID for this record
@@ -59,6 +49,8 @@ func (r *Record) ContentLength() int {
 
 // Write this record to a given writer
 func (r *Record) Write(w io.Writer) error {
+	r.Headers[contentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
+	r.Headers[warcType] = r.Type.String()
 	if err := writeHeader(w, r); err != nil {
 		return err
 	}

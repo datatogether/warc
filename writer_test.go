@@ -191,7 +191,6 @@ func checkSha1Hash(content []byte, hashstr string) error {
 // }
 
 // func testReadFromStreamNoContentLength(t *testing.T) {
-
 // }
 
 func validateResponse(r *Record) error {
