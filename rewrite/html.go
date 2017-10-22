@@ -1,6 +1,8 @@
 package rewrite
 
 import (
+	"bytes"
+	"golang.org/x/net/html"
 	"regexp"
 )
 
@@ -26,7 +28,25 @@ func NewHtmlRewriter(configs ...func(*Config)) *HtmlRewriter {
 }
 
 func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
-	return nil, ErrNotFinished
+	rdr := bytes.NewReader(p)
+	tokenizer := html.NewTokenizer(rdr)
+	w := &bytes.Buffer{}
+
+	for {
+		tt := tokenizer.Next()
+		token := tokenizer.Token()
+		switch tt {
+		case html.ErrorToken:
+			if tokenizer.Err().Error() == "EOF" {
+				return w.Bytes(), nil
+			}
+			return nil, tokenizer.Err()
+		}
+
+		w.WriteString(token.String())
+	}
+
+	return p, nil
 }
 
 func (hrw *HtmlRewriter) rewriteMetaRefresh(p []byte, metaRefresh *regexp.Regexp) {
