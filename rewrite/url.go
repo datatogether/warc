@@ -5,19 +5,26 @@ import (
 )
 
 type UrlRewriter struct {
-	Host, Scheme string
+	fromHost string
+	to       *url.URL
 }
 
-func NewUrlRewriter(base string) *UrlRewriter {
-	u, err := url.Parse(base)
+func NewUrlRewriter(from, to string) *UrlRewriter {
+	f, err := url.Parse(from)
 	if err != nil {
 		// TODO - ugh.
 		panic(err)
 	}
 
+	t, err := url.Parse(to)
+	if err != nil {
+		// TODO
+		panic(err)
+	}
+
 	return &UrlRewriter{
-		Scheme: u.Scheme,
-		Host:   u.Host,
+		fromHost: f.Host,
+		to:       t,
 	}
 }
 
@@ -27,29 +34,31 @@ func (urw *UrlRewriter) Rewrite(p []byte) ([]byte, error) {
 		return nil, nil
 	}
 
-	u, err := url.Parse(string(p))
+	u, err := urw.to.Parse(string(p))
 	if err != nil {
 		return nil, err
 	}
 
-	u.Host = urw.Host
-	u.Scheme = urw.Scheme
+	// fmt.Println(u.Host, urw.fromHost)
+	if u.Host == urw.fromHost {
+		u.Host = urw.to.Host
+	}
 
 	return []byte(u.String()), nil
 }
 
-func (urw *UrlRewriter) rewriteBase(p []byte, url, mod string) {
+// func (urw *UrlRewriter) rewriteBase(p []byte, url, mod string) {
 
-}
+// }
 
-func (urw *UrlRewriter) writeDefaultBase() {
+// func (urw *UrlRewriter) writeDefaultBase() {
 
-}
+// }
 
-func (urw *UrlRewriter) ensureUrlHasPath() {
+// func (urw *UrlRewriter) ensureUrlHasPath() {
 
-}
+// }
 
-func (urw *UrlRewriter) tryUnescape() {
+// func (urw *UrlRewriter) tryUnescape() {
 
-}
+// }
