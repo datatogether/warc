@@ -46,19 +46,3 @@ func (urw *UrlRewriter) Rewrite(p []byte) ([]byte, error) {
 
 	return []byte(u.String()), nil
 }
-
-// func (urw *UrlRewriter) rewriteBase(p []byte, url, mod string) {
-
-// }
-
-// func (urw *UrlRewriter) writeDefaultBase() {
-
-// }
-
-// func (urw *UrlRewriter) ensureUrlHasPath() {
-
-// }
-
-// func (urw *UrlRewriter) tryUnescape() {
-
-// }

@@ -19,7 +19,6 @@ type HeaderRewriter struct {
 
 func NewHeaderRewriter(configs ...func(cfg *Config)) *HeaderRewriter {
 	c := makeConfig(configs...)
-
 	return &HeaderRewriter{
 		prefix: c.HeaderPrefix,
 		rules:  c.HeaderRules,
@@ -42,6 +41,6 @@ func (hrw *HeaderRewriter) rewriteHeader(name, value string) {
 	}
 }
 
-func (hrw *HeaderRewriter) addCacheHeaders(headers map[string]string) {
+func (hrw *HeaderRewriter) AddCacheHeaders(headers map[string]string) {
 
 }

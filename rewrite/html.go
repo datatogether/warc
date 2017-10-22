@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"golang.org/x/net/html"
 	"regexp"
+	"strings"
 )
 
 var headTags = []string{"html", "head", "base", "link", "meta", "title", "style", "script", "object", "bgsound"}
@@ -15,9 +16,9 @@ type HtmlRewriter struct {
 	jsRewriter    Rewriter
 	cssRewriter   Rewriter
 	url           string
-	defmod        string
+	defmod        Rewriter
 	parseComments bool
-	rewriteTags   map[string]map[string]string
+	rewriteTags   map[string]map[string]Rewriter
 }
 
 func NewHtmlRewriter(configs ...func(*Config)) *HtmlRewriter {
@@ -36,11 +37,21 @@ func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
 		tt := tokenizer.Next()
 		token := tokenizer.Token()
 		switch tt {
+		// case html.TextToken:
+		// case html.CommentToken:
 		case html.ErrorToken:
+			// ErrorToken means that an error occurred during tokenization.
+			// most common is end-of-file (EOF)
 			if tokenizer.Err().Error() == "EOF" {
 				return w.Bytes(), nil
 			}
 			return nil, tokenizer.Err()
+		case html.DoctypeToken:
+		case html.StartTagToken, html.SelfClosingTagToken:
+			name, hasAttr := tokenizer.TagName()
+			if hasAttr {
+				hrw.rewriteToken(string(name), &token)
+			}
 		}
 
 		w.WriteString(token.String())
@@ -53,35 +64,58 @@ func (hrw *HtmlRewriter) rewriteMetaRefresh(p []byte, metaRefresh *regexp.Regexp
 
 }
 
-func rewriteTags(defmod string) map[string]map[string]string {
-	return map[string]map[string]string{
+func (hrw *HtmlRewriter) rewriteToken(name string, tok *html.Token) error {
+	attrs := hrw.rewriteTags[name]
+	if attrs != nil {
+		for _, a := range tok.Attr {
+			repl := attrs[strings.ToLower(a.Key)]
+			if repl != nil {
+				rw, err := repl.Rewrite([]byte(a.Val))
+				if err != nil {
+					return err
+				}
+				a.Val = string(rw)
+			}
+		}
+	}
+	return nil
+}
+
+func rewriteTags(defmod Rewriter) map[string]map[string]Rewriter {
+	oe := PrefixRewriter{Prefix: []byte("oe_")}
+	im := PrefixRewriter{Prefix: []byte("im_")}
+	if_ := PrefixRewriter{Prefix: []byte("if_")}
+	fr_ := PrefixRewriter{Prefix: []byte("fr_")}
+	js_ := PrefixRewriter{Prefix: []byte("js_")}
+
+	return map[string]map[string]Rewriter{
 		"a":          {"href": defmod},
-		"applet":     {"codebase": "oe_", "archive": "oe_"},
+		"applet":     {"codebase": oe, "archive": oe},
 		"area":       {"href": defmod},
-		"audio":      {"src": "oe_"},
+		"audio":      {"src": oe},
 		"base":       {"href": defmod},
 		"blockquote": {"cite": defmod},
-		"body":       {"background": "im_"},
+		"body":       {"background": im},
 		"button":     {"formaction": defmod},
-		"command":    {"icon": "im_"},
+		"command":    {"icon": im},
 		"del":        {"cite": defmod},
-		"embed":      {"src": "oe_"},
+		"embed":      {"src": oe},
 		"head":       {"": defmod}, // for head rewriting
-		"iframe":     {"src": "if_"},
-		"image":      {"src": "im_", "xlink:href": "im_"},
-		"img":        {"src": "im_", "srcset": "im_"},
+		"iframe":     {"src": if_},
+		"image":      {"src": im, "xlink:href": im},
+		"img":        {"src": im, "srcset": im},
 		"ins":        {"cite": defmod},
-		"input":      {"src": "im_", "formaction": defmod},
+		"input":      {"src": im, "formaction": defmod},
 		"form":       {"action": defmod},
-		"frame":      {"src": "fr_"},
-		"link":       {"href": "oe_"},
+		"frame":      {"src": fr_},
+		"link":       {"href": oe},
 		"meta":       {"content": defmod},
-		"object":     {"codebase": "oe_", "data": "oe_"},
-		"param":      {"value": "oe_"},
+		"object":     {"codebase": oe, "data": oe},
+		"param":      {"value": oe},
 		"q":          {"cite": defmod},
-		"ref":        {"href": "oe_"},
-		"script":     {"src": "js_"},
-		"source":     {"src": "oe_"},
-		"video":      {"src": "oe_", "poster": "im_"},
+		"ref":        {"href": oe},
+		"script":     {"src": js_},
+		"source":     {"src": oe},
+		"video":      {"src": oe, "poster": im},
 	}
 }

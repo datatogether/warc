@@ -1,7 +1,8 @@
 package rewrite
 
 type Config struct {
-	Defmod       string
+	DestUrl      string
+	Defmod       Rewriter
 	Rewriters    []RewriterType
 	HeaderPrefix string
 	HeaderRules  map[string]RewriteRule
@@ -9,13 +10,8 @@ type Config struct {
 
 func DefaultConfig() *Config {
 	return &Config{
-		Rewriters: []RewriterType{
-			RwTypeCookie,
-			RwTypeHeader,
-			RwTypeJavascript,
-			RwTypeCss,
-		},
-		Defmod:       "",
+		DestUrl:      "",
+		Defmod:       NoopRewriter,
 		HeaderPrefix: "X-Archive-Orig-",
 		HeaderRules:  DefaultHeaderRewriters,
 	}
