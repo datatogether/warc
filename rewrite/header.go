@@ -3,8 +3,8 @@ package rewrite
 type RewriteRule int
 
 const (
-	PrefixIfUrlRewrite RewriteRule = iota
-	Keep
+	Keep RewriteRule = iota
+	PrefixIfUrlRewrite
 	Prefix
 	UrlRewrite
 	PrefixIfContentRewrite
@@ -26,12 +26,12 @@ func NewHeaderRewriter(configs ...func(cfg *Config)) *HeaderRewriter {
 	}
 }
 
-func Rewrite(p []byte) (int, error) {
-	return 0, nil
+func (hrw *HeaderRewriter) Rewrite(p []byte) ([]byte, error) {
+	return nil, ErrNotFinished
 }
 
-func (hrw *HeaderRewriter) RewriteHeader(name, value string) {
-	switch rule {
+func (hrw *HeaderRewriter) rewriteHeader(name, value string) {
+	switch hrw.rules[name] {
 	case Keep:
 	case UrlRewrite:
 	case PrefixIfContentRewrite:

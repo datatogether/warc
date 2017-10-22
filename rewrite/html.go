@@ -1,7 +1,7 @@
 package rewrite
 
 import (
-	"io"
+	"regexp"
 )
 
 var headTags = []string{"html", "head", "base", "link", "meta", "title", "style", "script", "object", "bgsound"}
@@ -20,7 +20,17 @@ type HtmlRewriter struct {
 
 func NewHtmlRewriter(configs ...func(*Config)) *HtmlRewriter {
 	c := makeConfig(configs...)
-	return &HtmlRewriter{}
+	return &HtmlRewriter{
+		rewriteTags: rewriteTags(c.Defmod),
+	}
+}
+
+func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
+	return nil, ErrNotFinished
+}
+
+func (hrw *HtmlRewriter) rewriteMetaRefresh(p []byte, metaRefresh *regexp.Regexp) {
+
 }
 
 func rewriteTags(defmod string) map[string]map[string]string {

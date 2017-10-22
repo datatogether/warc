@@ -1,10 +1,7 @@
 package rewrite
 
-import (
-	"io"
-)
-
 type Config struct {
+	Defmod       string
 	Rewriters    []RewriterType
 	HeaderPrefix string
 	HeaderRules  map[string]RewriteRule
@@ -24,22 +21,23 @@ func DefaultConfig() *Config {
 	}
 }
 
-func (cfg *Config) Rewriters() map[RewriterType]Rewriter {
-	rws := map[RewriterType]Rewriter{}
-	for _, rwt := range cfg {
-		switch rwt {
-		case RwTypeCookie:
-			return
-		}
-	}
-}
-
 func makeConfig(configs ...func(*Config)) *Config {
 	cfg := DefaultConfig()
 	for _, config := range configs {
 		config(cfg)
 	}
 	return cfg
+}
+
+func makeRewriters(cfg *Config) map[RewriterType]Rewriter {
+	rws := map[RewriterType]Rewriter{}
+	for _, rwt := range cfg.Rewriters {
+		switch rwt {
+		case RwTypeCookie:
+		}
+	}
+
+	return rws
 }
 
 var DefaultHeaderRewriters = map[string]RewriteRule{
@@ -92,7 +90,7 @@ var DefaultHeaderRewriters = map[string]RewriteRule{
 	"retry-after":     Prefix,
 	"server":          Prefix,
 
-	"set-cookie": "cookie",
+	"set-cookie": Cookie,
 
 	"strict-transport-security": Prefix,
 

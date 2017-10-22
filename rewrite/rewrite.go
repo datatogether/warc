@@ -1,15 +1,20 @@
 package rewrite
 
 import (
-	"bytes"
-	"io"
+	"errors"
 )
 
+var ErrNotFinished = errors.New("not finished")
+
+// Rewriter takes an input byte slice of and returns an output
+// slice of rewritten bytes, the length of input & output will
+// not necessarily match, implementations *may* alter input bytes
 type Rewriter interface {
-	// io.ReadWriter
-	Rewrite([]byte) (int, error)
+	Rewrite(i []byte) (o []byte, err error)
 }
 
+// RewriterType enumerates rewriters that operate on different
+// types of content
 type RewriterType int
 
 const (
@@ -34,17 +39,4 @@ func (rwt RewriterType) String() string {
 		RwTypeJavascript: "javascript",
 		RwTypeCss:        "css",
 	}[rwt]
-}
-
-type RewriteBuffer struct {
-	bytes.Buffer
-	rw Rewriter
-}
-
-func (rwb *RewriteBuffer) Write(p []byte) (int, error) {
-	if b, err := rwb.rw.Rewrite(p); err != nil {
-		return b, err
-	}
-
-	return rwb.Buffer.Write(p)
 }

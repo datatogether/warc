@@ -17,9 +17,8 @@ func (crw *ContentRewriter) rewriter() {
 
 }
 
-func (crw *ContentRewriter) rwClass(rule, textType string) (string, string) {
-	if textType == "js" {
+// func (crw *ContentRewriter) rwClass(rule, textType string) (string, string) {
+// 	if textType == "js" {
 
-	}
-
-}
+// 	}
+// }
