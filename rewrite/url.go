@@ -42,6 +42,9 @@ func (urw *UrlRewriter) Rewrite(p []byte) ([]byte, error) {
 	// fmt.Println(u.Host, urw.fromHost)
 	if u.Host == urw.fromHost {
 		u.Host = urw.to.Host
+		if u.Scheme != urw.to.Scheme {
+			u.Scheme = urw.to.Scheme
+		}
 	}
 
 	return []byte(u.String()), nil

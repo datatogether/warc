@@ -36,7 +36,7 @@ var basicHtmlRewriteIn = `<!DOCTYPE html>
   <area href="http://a.com/path" />
   <audio src="http://a.com/audio/path" />
   <base href="/b"></base>
-  <blockquote cite=""></blockquote>
+  <blockquote cite="http://a.com"></blockquote>
   <button formaction="/">
     <p>no touch</p>
   </button>
@@ -70,7 +70,7 @@ var basicHtmlRewriteOut = `<!DOCTYPE html>
   <a href="https://b.tv/apples" nochange="leave/me/alone">link</a>
   <applet codebase="oe_http://a.com/codebase" archive="oe_http://appletarchive.com"></applet>
   <area href="https://b.tv/path" />
-  <audio src="https://b.tv/audio/path" />
+  <audio src="oe_http://a.com/audio/path" />
   <base href="https://b.tv/b"></base>
   <blockquote cite="https://b.tv"></blockquote>
   <button formaction="https://b.tv/">
@@ -84,13 +84,13 @@ var basicHtmlRewriteOut = `<!DOCTYPE html>
   <image src="im_huh" xlink:href="im_im"></image>
   <img src="im_stuff" srcset="im_srcset"></img>
   <ins cite="https://b.tv/1234"></ins>
-  <input src="https://b.tv/huh" formaction="https:/b.tv/word"></input>
+  <input src="im_/huh" formaction="https://b.tv/word"></input>
   <form action="https://b.tv/form/action">
     <frame src="fr_/frame/src"></frame>
   </form>
   <link href="oe_/link"></link>
   <script src="js_/static/js/script.js"></script>
-  <source src="js_/turn/left"></source>
+  <source src="oe_/turn/left"></source>
   <video src="oe_/yep" poster="im_poster"></video>
   <h3 href="http://a.com/stuff"></h3>
 </body>
