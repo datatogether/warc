@@ -38,10 +38,12 @@ func testRewriteCases(t *testing.T, rw Rewriter, cases []rewriteTestCase) {
 
 		if !bytes.Equal(got, c.out) {
 			dmp := dmp.New()
-			diffs := dmp.DiffMain(string(got), string(c.out), true)
+			diffs := dmp.DiffMain(string(c.out), string(got), true)
 
 			t.Errorf("case %d mismatch:\n%s", i, dmp.DiffPrettyText(diffs))
-			t.Errorf("expected: %s, got: %s", string(c.out), string(got))
+			if len(c.out) < 50 {
+				t.Errorf("expected: %s, got: %s", string(c.out), string(got))
+			}
 		}
 	}
 }

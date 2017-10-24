@@ -2,9 +2,9 @@ package rewrite
 
 import (
 	"bytes"
-	"golang.org/x/net/html"
 	"regexp"
-	"strings"
+
+	"golang.org/x/net/html"
 )
 
 var headTags = []string{"html", "head", "base", "link", "meta", "title", "style", "script", "object", "bgsound"}
@@ -12,7 +12,7 @@ var beforeHeadTags = []string{"html", "head"}
 var dataRwProtocols = []string{"http://", "https://", "//"}
 
 type HtmlRewriter struct {
-	urlRewriter   *UrlRewriter
+	urlrw         Rewriter
 	jsRewriter    Rewriter
 	cssRewriter   Rewriter
 	url           string
@@ -21,10 +21,11 @@ type HtmlRewriter struct {
 	rewriteTags   map[string]map[string]Rewriter
 }
 
-func NewHtmlRewriter(configs ...func(*Config)) *HtmlRewriter {
-	c := makeConfig(configs...)
+func NewHtmlRewriter(urlrw Rewriter, configs ...func(*Config)) *HtmlRewriter {
+	// c := makeConfig(configs...)
 	return &HtmlRewriter{
-		rewriteTags: rewriteTags(c.Defmod),
+		urlrw:       urlrw,
+		rewriteTags: rewriteTags(urlrw),
 	}
 }
 
@@ -32,10 +33,11 @@ func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
 	rdr := bytes.NewReader(p)
 	tokenizer := html.NewTokenizer(rdr)
 	w := &bytes.Buffer{}
+	var token html.Token
 
 	for {
 		tt := tokenizer.Next()
-		token := tokenizer.Token()
+		// token := tokenizer.Token()
 		switch tt {
 		// case html.TextToken:
 		// case html.CommentToken:
@@ -46,36 +48,65 @@ func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
 				return w.Bytes(), nil
 			}
 			return nil, tokenizer.Err()
-		case html.DoctypeToken:
-		case html.StartTagToken, html.SelfClosingTagToken:
+		case html.StartTagToken:
 			name, hasAttr := tokenizer.TagName()
-			if hasAttr {
-				hrw.rewriteToken(string(name), &token)
+			token := html.Token{
+				Type: html.StartTagToken,
+				Data: string(name),
 			}
+			if hasAttr {
+				if err := hrw.rewriteToken(&token, tokenizer); err != nil {
+					return nil, err
+				}
+			}
+			w.WriteString(token.String())
+			continue
+		case html.SelfClosingTagToken:
+			name, hasAttr := tokenizer.TagName()
+			token := html.Token{
+				Type: html.SelfClosingTagToken,
+				Data: string(name),
+			}
+			if hasAttr {
+				if err := hrw.rewriteToken(&token, tokenizer); err != nil {
+					return nil, err
+				}
+			}
+			w.WriteString(token.String())
+			continue
 		}
 
+		token = tokenizer.Token()
 		w.WriteString(token.String())
 	}
 
-	return p, nil
+	return w.Bytes(), nil
 }
 
 func (hrw *HtmlRewriter) rewriteMetaRefresh(p []byte, metaRefresh *regexp.Regexp) {
 
 }
 
-func (hrw *HtmlRewriter) rewriteToken(name string, tok *html.Token) error {
-	attrs := hrw.rewriteTags[name]
-	if attrs != nil {
-		for _, a := range tok.Attr {
-			repl := attrs[strings.ToLower(a.Key)]
-			if repl != nil {
-				rw, err := repl.Rewrite([]byte(a.Val))
-				if err != nil {
-					return err
-				}
-				a.Val = string(rw)
+func (hrw *HtmlRewriter) rewriteToken(t *html.Token, tok *html.Tokenizer) error {
+	attrs := hrw.rewriteTags[t.Data]
+	for {
+		key, val, more := tok.TagAttr()
+		repl := attrs[string(bytes.ToLower(key))]
+		if repl != nil {
+			rw, err := repl.Rewrite(val)
+			if err != nil {
+				return err
 			}
+			val = rw
+		}
+
+		t.Attr = append(t.Attr, html.Attribute{
+			Key: string(key),
+			Val: string(val),
+		})
+
+		if !more {
+			return nil
 		}
 	}
 	return nil
