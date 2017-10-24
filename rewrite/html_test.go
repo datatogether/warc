@@ -69,8 +69,8 @@ var basicHtmlRewriteOut = `<!DOCTYPE html>
 <body background="im_background">
   <a href="https://b.tv/apples" nochange="leave/me/alone">link</a>
   <applet codebase="oe_http://a.com/codebase" archive="oe_http://appletarchive.com"></applet>
-  <area href="https://b.tv/path" />
-  <audio src="oe_http://a.com/audio/path" />
+  <area href="https://b.tv/path"/>
+  <audio src="oe_http://a.com/audio/path"/>
   <base href="https://b.tv/b"></base>
   <blockquote cite="https://b.tv"></blockquote>
   <button formaction="https://b.tv/">
