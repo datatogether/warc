@@ -11,7 +11,7 @@ COOKIE DATA HERE
 func TestCookieRewriter(t *testing.T) {
 	rw := NewCookieRewriter()
 	testRewriteCases(t, rw, stringTestCases([]stringTestCase{
-		{"", "", nil},
-		{noChangeCookie, noChangeCookie, nil},
+		{"", ""},
+		{noChangeCookie, noChangeCookie},
 	}))
 }

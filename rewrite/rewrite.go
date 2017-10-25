@@ -11,7 +11,7 @@ var ErrNotFinished = errors.New("not finished")
 // slice of rewritten bytes, the length of input & output will
 // not necessarily match, implementations *may* alter input bytes
 type Rewriter interface {
-	Rewrite(i []byte) (o []byte, err error)
+	Rewrite(i []byte) (o []byte)
 }
 
 // RewriterType enumerates rewriters that operate on different
@@ -49,9 +49,9 @@ type PrefixRewriter struct {
 	Prefix []byte
 }
 
-func (prw PrefixRewriter) Rewrite(p []byte) ([]byte, error) {
+func (prw PrefixRewriter) Rewrite(p []byte) []byte {
 	if !bytes.HasPrefix(p, prw.Prefix) {
-		return append(prw.Prefix, p...), nil
+		return append(prw.Prefix, p...)
 	}
-	return p, nil
+	return p
 }

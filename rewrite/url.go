@@ -28,15 +28,15 @@ func NewUrlRewriter(from, to string) *UrlRewriter {
 	}
 }
 
-func (urw *UrlRewriter) Rewrite(p []byte) ([]byte, error) {
+func (urw *UrlRewriter) Rewrite(p []byte) []byte {
 	// call to rewrite with empty slice is a no-op
 	if len(p) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	u, err := urw.to.Parse(string(p))
 	if err != nil {
-		return nil, err
+		return p
 	}
 
 	// fmt.Println(u.Host, urw.fromHost)
@@ -47,5 +47,5 @@ func (urw *UrlRewriter) Rewrite(p []byte) ([]byte, error) {
 		}
 	}
 
-	return []byte(u.String()), nil
+	return []byte(u.String())
 }

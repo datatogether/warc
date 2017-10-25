@@ -1,7 +1,6 @@
 package rewrite
 
 import (
-	"fmt"
 	"regexp"
 )
 
@@ -20,20 +19,8 @@ type RegexRewriter struct {
 	Rw Rewriter
 }
 
-func (rerw *RegexRewriter) Rewrite(p []byte) ([]byte, error) {
-	var err error
-	repl := rerw.Re.ReplaceAllFunc(p, func(i []byte) (o []byte) {
-		// fmt.Println(string(i), string(o), err)
-		// rerw.Re.Expand(dst, template, src, match)
-		o, err = rerw.Rw.Rewrite(i)
-		if err != nil {
-			fmt.Println(err)
-			return i
-		}
-		fmt.Println(string(i), string(o), err)
-		return o
-	})
-	return repl, nil
+func (rerw *RegexRewriter) Rewrite(p []byte) []byte {
+	return rerw.Re.ReplaceAllFunc(p, rerw.Rw.Rewrite)
 }
 
 // Shameless copy pasta from Stack Overflow

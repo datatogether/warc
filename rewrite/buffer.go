@@ -23,10 +23,6 @@ func NewBuffer(data []byte, rw Rewriter) *Buffer {
 }
 
 func (rwb *Buffer) Write(p []byte) (int, error) {
-	rw, err := rwb.rw.Rewrite(p)
-	if err != nil {
-		return 0, err
-	}
-
+	rw := rwb.rw.Rewrite(p)
 	return rwb.Buffer.Write(rw)
 }

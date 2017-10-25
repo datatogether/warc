@@ -8,9 +8,9 @@ func TestRewriteHtml(t *testing.T) {
 	urlrw := NewUrlRewriter("http://a.com", "https://b.tv")
 	rw := NewHtmlRewriter(urlrw)
 	cases := stringTestCases([]stringTestCase{
-		{"", "", nil},
-		{htmlNoChange, htmlNoChange, nil},
-		{basicHtmlRewriteIn, basicHtmlRewriteOut, nil},
+		{"", ""},
+		{htmlNoChange, htmlNoChange},
+		{basicHtmlRewriteIn, basicHtmlRewriteOut},
 	})
 	testRewriteCases(t, rw, cases)
 }

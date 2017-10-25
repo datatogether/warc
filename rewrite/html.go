@@ -2,6 +2,7 @@ package rewrite
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
 
 	"golang.org/x/net/html"
@@ -29,7 +30,7 @@ func NewHtmlRewriter(urlrw Rewriter, configs ...func(*Config)) *HtmlRewriter {
 	}
 }
 
-func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
+func (hrw *HtmlRewriter) Rewrite(p []byte) []byte {
 	rdr := bytes.NewReader(p)
 	tokenizer := html.NewTokenizer(rdr)
 	w := &bytes.Buffer{}
@@ -45,9 +46,11 @@ func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
 			// ErrorToken means that an error occurred during tokenization.
 			// most common is end-of-file (EOF)
 			if tokenizer.Err().Error() == "EOF" {
-				return w.Bytes(), nil
+				return w.Bytes()
 			}
-			return nil, tokenizer.Err()
+
+			fmt.Println(tokenizer.Err().Error())
+			return p
 		case html.StartTagToken:
 			name, hasAttr := tokenizer.TagName()
 			token := html.Token{
@@ -55,9 +58,7 @@ func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
 				Data: string(name),
 			}
 			if hasAttr {
-				if err := hrw.rewriteToken(&token, tokenizer); err != nil {
-					return nil, err
-				}
+				hrw.rewriteToken(&token, tokenizer)
 			}
 			w.WriteString(token.String())
 			continue
@@ -68,9 +69,7 @@ func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
 				Data: string(name),
 			}
 			if hasAttr {
-				if err := hrw.rewriteToken(&token, tokenizer); err != nil {
-					return nil, err
-				}
+				hrw.rewriteToken(&token, tokenizer)
 			}
 			w.WriteString(token.String())
 			continue
@@ -80,24 +79,20 @@ func (hrw *HtmlRewriter) Rewrite(p []byte) ([]byte, error) {
 		w.WriteString(token.String())
 	}
 
-	return w.Bytes(), nil
+	return w.Bytes()
 }
 
 func (hrw *HtmlRewriter) rewriteMetaRefresh(p []byte, metaRefresh *regexp.Regexp) {
 
 }
 
-func (hrw *HtmlRewriter) rewriteToken(t *html.Token, tok *html.Tokenizer) error {
+func (hrw *HtmlRewriter) rewriteToken(t *html.Token, tok *html.Tokenizer) {
 	attrs := hrw.rewriteTags[t.Data]
 	for {
 		key, val, more := tok.TagAttr()
 		repl := attrs[string(bytes.ToLower(key))]
 		if repl != nil {
-			rw, err := repl.Rewrite(val)
-			if err != nil {
-				return err
-			}
-			val = rw
+			val = repl.Rewrite(val)
 		}
 
 		t.Attr = append(t.Attr, html.Attribute{
@@ -106,10 +101,10 @@ func (hrw *HtmlRewriter) rewriteToken(t *html.Token, tok *html.Tokenizer) error 
 		})
 
 		if !more {
-			return nil
+			return
 		}
 	}
-	return nil
+	return
 }
 
 func rewriteTags(defmod Rewriter) map[string]map[string]Rewriter {

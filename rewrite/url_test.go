@@ -6,23 +6,23 @@ import (
 
 func TestUrlRewriter(t *testing.T) {
 	cases := stringTestCases([]stringTestCase{
-		{"", "", nil},
-		{"http://youtube.com", "http://youtube.com", nil},
-		{"https://a.com", "http://b.tv", nil},
-		{"http://a.com/", "http://b.tv/", nil},
-		{"/relative/url", "http://b.tv/relative/url", nil},
-		{"http://a.com/path?query=a", "http://b.tv/path?query=a", nil},
+		{"", ""},
+		{"http://youtube.com", "http://youtube.com"},
+		{"https://a.com", "http://b.tv"},
+		{"http://a.com/", "http://b.tv/"},
+		{"/relative/url", "http://b.tv/relative/url"},
+		{"http://a.com/path?query=a", "http://b.tv/path?query=a"},
 	})
 
 	rw := NewUrlRewriter("http://a.com", "http://b.tv")
 	testRewriteCases(t, rw, cases)
 
 	cases = stringTestCases([]stringTestCase{
-		{"", "", nil},
-		{"http://youtube.com", "http://youtube.com", nil},
-		{"http://a.com", "https://b.tv", nil},
-		{"/relative/url", "https://b.tv/relative/url", nil},
-		{"https://a.com/path?query=a", "https://b.tv/path?query=a", nil},
+		{"", ""},
+		{"http://youtube.com", "http://youtube.com"},
+		{"http://a.com", "https://b.tv"},
+		{"/relative/url", "https://b.tv/relative/url"},
+		{"https://a.com/path?query=a", "https://b.tv/path?query=a"},
 	})
 
 	rw = NewUrlRewriter("http://a.com", "https://b.tv")

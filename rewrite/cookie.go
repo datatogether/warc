@@ -1,9 +1,5 @@
 package rewrite
 
-import (
-	"fmt"
-)
-
 type CookieRewriter struct {
 }
 
@@ -12,7 +8,7 @@ func NewCookieRewriter(configs ...func(*Config)) *CookieRewriter {
 	return &CookieRewriter{}
 }
 
-func (crw *CookieRewriter) Rewrite(p []byte) ([]byte, error) {
+func (crw *CookieRewriter) Rewrite(p []byte) []byte {
 	// TODO
-	return nil, fmt.Errorf("not finished")
+	return p
 }

@@ -9,12 +9,10 @@ import (
 
 type rewriteTestCase struct {
 	in, out []byte
-	err     error
 }
 
 type stringTestCase struct {
 	in, out string
-	err     error
 }
 
 func stringTestCases(in []stringTestCase) (cases []rewriteTestCase) {
@@ -22,7 +20,6 @@ func stringTestCases(in []stringTestCase) (cases []rewriteTestCase) {
 		cases = append(cases, rewriteTestCase{
 			in:  []byte(c.in),
 			out: []byte(c.out),
-			err: c.err,
 		})
 	}
 	return
@@ -30,12 +27,7 @@ func stringTestCases(in []stringTestCase) (cases []rewriteTestCase) {
 
 func testRewriteCases(t *testing.T, rw Rewriter, cases []rewriteTestCase) {
 	for i, c := range cases {
-		got, err := rw.Rewrite(c.in)
-		if err != nil && err != c.err {
-			t.Errorf("case %d error mismatch: %s != %s", i, err, c.err)
-			continue
-		}
-
+		got := rw.Rewrite(c.in)
 		if !bytes.Equal(got, c.out) {
 			dmp := dmp.New()
 			diffs := dmp.DiffMain(string(c.out), string(got), true)

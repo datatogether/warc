@@ -17,8 +17,8 @@ func TestCssRewriter(t *testing.T) {
 	urlrw := NewUrlRewriter("http://a.com", "https://b.tv")
 	rw := NewCssRewriter(urlrw)
 	testRewriteCases(t, rw, stringTestCases([]stringTestCase{
-		{"", "", nil},
-		{noChangeCss, noChangeCss, nil},
-		{`@import url("http://a.com/path/to/css")`, `@import url("https://b.tv/path/to/css")`, nil},
+		{"", ""},
+		{noChangeCss, noChangeCss},
+		{`@import url("http://a.com/path/to/css")`, `@import url("https://b.tv/path/to/css")`},
 	}))
 }

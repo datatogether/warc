@@ -10,14 +10,9 @@ func NewCssRewriter(urlrw *UrlRewriter) *CssRewriter {
 	}
 }
 
-func (rerw *CssRewriter) Rewrite(p []byte) ([]byte, error) {
-	rep := ReplaceAllSubmatchFunc(CssUrlRegex, p, func(i []byte) []byte {
-		o, err := rerw.Rw.Rewrite(i)
-		if err != nil {
-			return i
-		}
+func (rerw *CssRewriter) Rewrite(p []byte) []byte {
+	return ReplaceAllSubmatchFunc(CssUrlRegex, p, func(i []byte) []byte {
+		o := rerw.Rw.Rewrite(i)
 		return append([]byte("url(\""), append(o, []byte("\")")...)...)
 	})
-
-	return rep, nil
 }
