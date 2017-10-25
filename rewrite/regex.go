@@ -10,13 +10,20 @@ var (
 	// CssImportNoUrlRegex = regexp.MustCompile(`@import\\s+(?!url)\\(?\\s*['\"]?(?!url[\\s\\(])([\w.:/\\\\-]+)`)
 	CssImportNoUrlRegex = regexp.MustCompile(``)
 	HttpxMatchString    = regexp.MustCompile(`https?:\\?/\\?/[A-Za-z0-9:_@.-]+`)
-	// JsHttpx             = regexp.MustCompile(`(?:(?<=["\';])https?:|(?<=["\']))\\{0,4}/\\{0,4}/[A-Za-z0-9:_@%.\\-]+/`)
+
 	JsHttpx = regexp.MustCompile(``)
+	// JsHttpx             = regexp.MustCompile(`(?:(?<=["\';])https?:|(?<=["\']))\\{0,4}/\\{0,4}/[A-Za-z0-9:_@%.\\-]+/`)
+	// JsLocation   = regexp.MustCompile(`(?<![$\'"])\b(?:location|top)\b(?![$\'":])`)
+	// JsLocation2  = regexp.MustCompile(`(?<=[?])\s*(?:\w+[.])?(location)\s*(?=[:])`)
+	// PostMessage  = regexp.MustCompile(`(?<=\.)postMessage\b\(`)
+	// FrameElement = regexp.MustCompile(`(?<=\.)frameElement\b`)
 )
 
 type RegexRewriter struct {
 	Re *regexp.Regexp
 	Rw Rewriter
+	// TODO - implement counts
+	Count int
 }
 
 func (rerw *RegexRewriter) Rewrite(p []byte) []byte {
