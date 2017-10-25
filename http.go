@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/datatogether/warc/warc"
 )
 
 // DoRequest is a stand-in for performing an archival http request
@@ -33,7 +35,6 @@ func DoRequest(req *http.Request) (Records, error) {
 
 func RequestRecord(req *http.Request) *Record {
 	body := contentFromHttpRequest(req)
-
 	return &Record{
 		Type: RecordTypeRequest,
 		Headers: map[string]string{
@@ -47,15 +48,15 @@ func RequestRecord(req *http.Request) *Record {
 func contentFromHttpRequest(req *http.Request) []byte {
 	buf := &bytes.Buffer{}
 
-	if req.Method == "" {
-		req.Method = "GET"
+	if err := warc.WriteRequestStatusAndHeaders(buf, req); err != nil {
+		return
 	}
 
-	buf.WriteString(fmt.Sprintf("%s / %s\r\n", req.Method, req.Proto))
-	buf.WriteString(fmt.Sprintf("Host: %s\r\n", req.Host))
-	if err := writeHttpHeaders(buf, req.Header); err != nil {
-		fmt.Println("error writing to buffer? strange:", err.Error())
-	}
+	// buf.WriteString(fmt.Sprintf("%s / %s\r\n", req.Method, req.Proto))
+	// buf.WriteString(fmt.Sprintf("Host: %s\r\n", req.Host))
+	// if err := writeHttpHeaders(buf, req.Header); err != nil {
+	// 	fmt.Println("error writing to buffer? strange:", err.Error())
+	// }
 
 	// buf.WriteString(fmt.Sprintf("User-Agent: %s\r\n", req.UserAgent()))
 	// TODO - finish
@@ -71,7 +72,7 @@ func HttpResponseRecord(res *http.Response) (*Record, error) {
 	}
 
 	buf := &bytes.Buffer{}
-	writeHttpHeaders(buf, res.Header)
+	warc.WriteHttpHeaders(buf, res.Header)
 	buf.WriteString("\r\n")
 	buf.Write(sanitized)
 

@@ -52,7 +52,17 @@ func writeWarcVersion(w io.Writer, r *Record) error {
 	return err
 }
 
-func writeHttpHeaders(w io.Writer, headers http.Header) error {
+func WriteRequestStatusAndHeaders(w io.Writer, req *http.Request) error {
+	if req.Method == "" {
+		req.Method = "GET"
+	}
+	_, err := io.WriteString(w, fmt.Sprintf("%s / %s\r\n", req.Method, req.Proto))
+	// io.WriteString(w, fmt.Sprintf("Host: %s\r\n", req.Host))
+	WriteHttpHeaders(w, req.Header)
+	return err
+}
+
+func WriteHttpHeaders(w io.Writer, headers http.Header) error {
 	for k, _ := range headers {
 		if _, err := io.WriteString(w, fmt.Sprintf("%s: %s\r\n", k, headers.Get(k))); err != nil {
 			return err
