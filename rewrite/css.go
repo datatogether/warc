@@ -1,22 +1,23 @@
 package rewrite
 
 type CssRewriter struct {
-	urlrw *UrlRewriter
+	Rw *UrlRewriter
 }
 
 func NewCssRewriter(urlrw *UrlRewriter) *CssRewriter {
 	return &CssRewriter{
-		urlrw: urlrw,
+		Rw: urlrw,
 	}
 }
 
-func (crw *CssRewriter) Rewrite(p []byte) ([]byte, error) {
-	repl := CssImportNoUrlRegex.ReplaceAllFunc(p, func(match []byte) []byte {
-		rep, err := crw.urlrw.Rewrite(match)
+func (rerw *CssRewriter) Rewrite(p []byte) ([]byte, error) {
+	rep := ReplaceAllSubmatchFunc(CssUrlRegex, p, func(i []byte) []byte {
+		o, err := rerw.Rw.Rewrite(i)
 		if err != nil {
-			return match
+			return i
 		}
-		return rep
+		return append([]byte("url(\""), append(o, []byte("\")")...)...)
 	})
-	return repl, nil
+
+	return rep, nil
 }

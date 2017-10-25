@@ -1,6 +1,7 @@
 package rewrite
 
 import (
+	"bytes"
 	"errors"
 )
 
@@ -39,4 +40,18 @@ func (rwt RewriterType) String() string {
 		RwTypeJavascript: "javascript",
 		RwTypeCss:        "css",
 	}[rwt]
+}
+
+var NoopRewriter = PrefixRewriter{}
+
+// PrefixRewriter adds a prefix if not present
+type PrefixRewriter struct {
+	Prefix []byte
+}
+
+func (prw PrefixRewriter) Rewrite(p []byte) ([]byte, error) {
+	if !bytes.HasPrefix(p, prw.Prefix) {
+		return append(prw.Prefix, p...), nil
+	}
+	return p, nil
 }

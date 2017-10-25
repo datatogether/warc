@@ -14,11 +14,11 @@ const noChangeCss = `
 `
 
 func TestCssRewriter(t *testing.T) {
-	urlrw := NewUrlRewriter("http://a.com", "http://b.tv")
+	urlrw := NewUrlRewriter("http://a.com", "https://b.tv")
 	rw := NewCssRewriter(urlrw)
 	testRewriteCases(t, rw, stringTestCases([]stringTestCase{
 		{"", "", nil},
 		{noChangeCss, noChangeCss, nil},
-		{`@import("http://a.com/path/to/css")`, `@import("http://t.tv/path/to/css")`, nil},
+		{`@import url("http://a.com/path/to/css")`, `@import url("https://b.tv/path/to/css")`, nil},
 	}))
 }
