@@ -1,20 +1,57 @@
 package rewrite
 
+import (
+	"github.com/datatogether/cdxj"
+	"github.com/datatogether/warc/warc"
+)
+
 type ContentRewriter struct {
-	rules     map[string]RewriteRule
-	rewriters map[RewriterType]Rewriter
+	rules        map[string]RewriteRule
+	rewriters    map[RewriterType]Rewriter
+	contentTypes map[string]string
 }
 
-func NewContentRewriter(options ...func(o *Config)) {
-	o := DefaultConfig()
-	for _, option := range options {
-		option(o)
+func NewContentRewriter(options ...func(o *Config)) *ContentRewriter {
+	// o := makeConfig(options...)
+	return &ContentRewriter{
+	// rewriters: o.Rewriters,
 	}
+}
+
+// func (crw *ContentRewriter) Rewrite() {
+
+// }
+
+type RewriteContentParams struct {
+	Record   *warc.Record
+	Cdxj     cdxj.Writer
+	Urlrw    *UrlRewriter
+	Cookierw *CookieRewriter
+}
+
+func (crw *ContentRewriter) RewriteContent(req *RewriteContentParams) {
 
 }
 
-func (crw *ContentRewriter) rewriter() {
+func (crw *ContentRewriter) rewriteInfo(req *RewriteContentParams) rewriteInfo {
+	return rewriteInfo{
+		req.Record,
+		req.Urlrw,
+		req.Cookierw,
+		false,
+	}
+}
 
+type rewriteInfo struct {
+	record      *warc.Record
+	urlRw       Rewriter
+	cookieRw    Rewriter
+	isContentRw bool
+	// rewriteTypes
+}
+
+func (rwi rewriteInfo) shouldRewriteContent() bool {
+	return true
 }
 
 // func (crw *ContentRewriter) rwClass(rule, textType string) (string, string) {
@@ -23,20 +60,20 @@ func (crw *ContentRewriter) rewriter() {
 // 	}
 // }
 
-var DefaultContentRewriters = map[string]Rewriter{
-	"header":           DefaultHeaderRewriter,
-	"cookie":           HostScopeCookieRewriter,
-	"html":             HTMLRewriter,
-	"html-banner-only": HTMLInsertOnlyRewriter,
-	"css":              CSSRewriter,
-	"js":               JSLocationOnlyRewriter,
-	"js-proxy":         JSNoneRewriter,
-	"json":             JSONPRewriter,
-	"xml":              XMLRewriter,
-	"dash":             RewriteDASH,
-	"hls":              RewriteHLS,
-	"amf":              RewriteAMF,
-}
+// var DefaultContentRewriters = map[string]Rewriter{
+// 	"header":           DefaultHeaderRewriter,
+// 	"cookie":           HostScopeCookieRewriter,
+// 	"html":             HTMLRewriter,
+// 	"html-banner-only": HTMLInsertOnlyRewriter,
+// 	"css":              CSSRewriter,
+// 	"js":               JSLocationOnlyRewriter,
+// 	"js-proxy":         JSNoneRewriter,
+// 	"json":             JSONPRewriter,
+// 	"xml":              XMLRewriter,
+// 	"dash":             RewriteDASH,
+// 	"hls":              RewriteHLS,
+// 	"amf":              RewriteAMF,
+// }
 
 var RewriteTypes = map[string]string{
 	// HTML

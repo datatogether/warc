@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func sha1Digest(data []byte) string {
+func Sha1Digest(data []byte) string {
 	hash := sha1.Sum(data)
 	buf := &bytes.Buffer{}
 	base32.NewEncoder(base32.StdEncoding, buf).Write(hash[:])

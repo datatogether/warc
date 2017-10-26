@@ -17,6 +17,8 @@ var (
 	// JsLocation2  = regexp.MustCompile(`(?<=[?])\s*(?:\w+[.])?(location)\s*(?=[:])`)
 	// PostMessage  = regexp.MustCompile(`(?<=\.)postMessage\b\(`)
 	// FrameElement = regexp.MustCompile(`(?<=\.)frameElement\b`)
+
+	//TAG_REGEX = re.compile(b'^\s*\<')
 )
 
 type RegexRewriter struct {

@@ -22,14 +22,14 @@ type Record struct {
 
 // The ID for this record
 func (r *Record) Id() string {
-	return r.Headers[warcRecordId]
+	return r.Headers[FieldNameWarcRecordId]
 }
 
 // Datestamp of record creation, returns empty (zero) time if
 // no Warc-Date header is present, or if the header is an
 // invalid timestamp
 func (r *Record) Date() time.Time {
-	t, err := time.Parse(time.RFC3339, r.Headers[warcDate])
+	t, err := time.Parse(time.RFC3339, r.Headers[FieldNameWarcDate])
 	if err != nil {
 		return time.Time{}
 	}
@@ -39,7 +39,7 @@ func (r *Record) Date() time.Time {
 // Length of content block in bytes, returns 0 if
 // Content-Length header is missing or invalid
 func (r *Record) ContentLength() int {
-	len, err := strconv.ParseInt(r.Headers[contentLength], 10, 64)
+	len, err := strconv.ParseInt(r.Headers[FieldNameContentLength], 10, 64)
 	if err != nil {
 		return 0
 	}
@@ -48,11 +48,11 @@ func (r *Record) ContentLength() int {
 
 // Write this record to a given writer
 func (r *Record) Write(w io.Writer) error {
-	r.Headers[contentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
-	r.Headers[warcType] = r.Type.String()
+	r.Headers[FieldNameContentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
+	r.Headers[FieldNameWarcType] = r.Type.String()
 	switch r.Type {
 	case RecordTypeResponse, RecordTypeRevisit:
-		r.Headers[warcBlockDigest] = sha1Digest(r.Content.Bytes())
+		r.Headers[FieldNameWarcBlockDigest] = Sha1Digest(r.Content.Bytes())
 	}
 
 	if err := writeHeader(w, r); err != nil {

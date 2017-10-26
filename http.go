@@ -2,7 +2,6 @@ package warc
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -13,10 +12,10 @@ import (
 // DoRequest is a stand-in for performing an archival http request
 // while we work on the API for this package, this may be moved
 // into a package of it's own
-func DoRequest(req *http.Request) (Records, error) {
+func DoRequest(req *http.Request) (warc.Records, error) {
 	reqr := RequestRecord(req)
 
-	reqr.Headers[warcDate] = time.Now().Format(time.RFC3339)
+	reqr.Headers[warc.FieldNameWarcDate] = time.Now().Format(time.RFC3339)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -27,19 +26,19 @@ func DoRequest(req *http.Request) (Records, error) {
 		return nil, err
 	}
 
-	return Records{
+	return warc.Records{
 		reqr,
 		resr,
 	}, nil
 }
 
-func RequestRecord(req *http.Request) *Record {
+func RequestRecord(req *http.Request) *warc.Record {
 	body := contentFromHttpRequest(req)
-	return &Record{
-		Type: RecordTypeRequest,
+	return &warc.Record{
+		Type: warc.RecordTypeRequest,
 		Headers: map[string]string{
-			contentType:  "application/http; msgtype=request",
-			warcRecordId: NewUuid(),
+			warc.FieldNameContentType:  "application/http; msgtype=request",
+			warc.FieldNameWarcRecordId: warc.NewUuid(),
 		},
 		Content: bytes.NewBuffer(body),
 	}
@@ -49,7 +48,7 @@ func contentFromHttpRequest(req *http.Request) []byte {
 	buf := &bytes.Buffer{}
 
 	if err := warc.WriteRequestStatusAndHeaders(buf, req); err != nil {
-		return
+		return buf.Bytes()
 	}
 
 	// buf.WriteString(fmt.Sprintf("%s / %s\r\n", req.Method, req.Proto))
@@ -65,7 +64,7 @@ func contentFromHttpRequest(req *http.Request) []byte {
 }
 
 // HttpResponseRecord creates a record from an HTTP response
-func HttpResponseRecord(res *http.Response) (*Record, error) {
+func HttpResponseRecord(res *http.Response) (*warc.Record, error) {
 	raw, sanitized, err := SanitizeResponse(res)
 	if err != nil {
 		return nil, err
@@ -76,12 +75,12 @@ func HttpResponseRecord(res *http.Response) (*Record, error) {
 	buf.WriteString("\r\n")
 	buf.Write(sanitized)
 
-	resr := &Record{
-		Type: RecordTypeResponse,
+	resr := &warc.Record{
+		Type: warc.RecordTypeResponse,
 		Headers: map[string]string{
-			warcPayloadDigest: sha1Digest(raw),
-			contentType:       "application/http; msgtype=response",
-			warcRecordId:      NewUuid(),
+			warc.FieldNameWarcPayloadDigest: warc.Sha1Digest(raw),
+			warc.FieldNameContentType:       "application/http; msgtype=response",
+			warc.FieldNameWarcRecordId:      warc.NewUuid(),
 		},
 		Content: buf,
 	}
@@ -96,7 +95,6 @@ func SanitizeResponse(res *http.Response) (raw, sanitized []byte, err error) {
 		return
 	}
 
-	// TODO - lololol finish
-	sanitized = bytes.Replace(raw, crlf, []byte("CRLF"), -1)
+	sanitized = warc.Sanitize(raw)
 	return
 }

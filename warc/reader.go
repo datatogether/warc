@@ -91,7 +91,7 @@ func (r *Reader) readRecord() (rec Record, err error) {
 			}
 		case scanPhaseHeaderValue:
 			rec.Headers[key] = string(bytes.TrimSpace(token))
-			if key == warcType {
+			if key == FieldNameWarcType {
 				rec.Type = recordType(rec.Headers[key])
 			}
 			r.phase = scanPhaseHeaderKey

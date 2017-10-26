@@ -71,12 +71,12 @@ func TestWarcinfoRecord(t *testing.T) {
 		Format: RecordFormatWarc,
 		Type:   RecordTypeWarcInfo,
 		Headers: map[string]string{
-			warcRecordId:  testRecordId,
-			warcType:      RecordTypeWarcInfo.String(),
-			warcFilename:  "testfile.warc.gz",
-			warcDate:      "2000-01-01T00:00:00Z",
-			contentType:   "application/warc-fields",
-			contentLength: "86",
+			FieldNameWarcRecordId:  testRecordId,
+			FieldNameWarcType:      RecordTypeWarcInfo.String(),
+			FieldNameWarcFilename:  "testfile.warc.gz",
+			FieldNameWarcDate:      "2000-01-01T00:00:00Z",
+			FieldNameContentType:   "application/warc-fields",
+			FieldNameContentLength: "86",
 		},
 		Content: bytes.NewBuffer([]byte("software: recorder test\r\n" +
 			"format: WARC File Format 1.0\r\n" +
@@ -93,14 +93,14 @@ func TestRequestRecord(t *testing.T) {
 		Format: RecordFormatWarc,
 		Type:   RecordTypeRequest,
 		Headers: map[string]string{
-			warcType:          RecordTypeRequest.String(),
-			warcRecordId:      testRecordId,
-			warcTargetUri:     "http://example.com/",
-			warcDate:          "2000-01-01T00:00:00Z",
-			warcPayloadDigest: "sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
-			warcBlockDigest:   "sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO",
-			contentType:       "application/http; msgtype=request",
-			contentLength:     "54",
+			FieldNameWarcType:          RecordTypeRequest.String(),
+			FieldNameWarcRecordId:      testRecordId,
+			FieldNameWarcTargetUri:     "http://example.com/",
+			FieldNameWarcDate:          "2000-01-01T00:00:00Z",
+			FieldNameWarcPayloadDigest: "sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+			FieldNameWarcBlockDigest:   "sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO",
+			FieldNameContentType:       "application/http; msgtype=request",
+			FieldNameContentLength:     "54",
 		},
 		Content: bytes.NewBuffer([]byte("GET / HTTP/1.0\r\n" +
 			"User-Agent: foo\r\n" +
@@ -118,14 +118,14 @@ func TestResponseRecord(t *testing.T) {
 		Format: RecordFormatWarc,
 		Type:   RecordTypeResponse,
 		Headers: map[string]string{
-			contentLength:     "97",
-			contentType:       "application/http; msgtype=response",
-			warcBlockDigest:   "sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74",
-			warcDate:          "2000-01-01T00:00:00Z",
-			warcPayloadDigest: "sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O",
-			warcRecordId:      "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>",
-			warcTargetUri:     "http://example.com/",
-			warcType:          RecordTypeResponse.String(),
+			FieldNameContentLength:     "97",
+			FieldNameContentType:       "application/http; msgtype=response",
+			FieldNameWarcBlockDigest:   "sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74",
+			FieldNameWarcDate:          "2000-01-01T00:00:00Z",
+			FieldNameWarcPayloadDigest: "sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O",
+			FieldNameWarcRecordId:      "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>",
+			FieldNameWarcTargetUri:     "http://example.com/",
+			FieldNameWarcType:          RecordTypeResponse.String(),
 		},
 		Content: bytes.NewBuffer([]byte("HTTP/1.0 200 OK\r\n" +
 			"Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
@@ -169,8 +169,8 @@ func testWriteRecord(r *Record, expect []byte) error {
 		return fmt.Errorf("byte mismatch: %s != %s", buf.String(), string(expect))
 	}
 
-	if r.Headers[warcBlockDigest] != "" {
-		checkSha1Hash(r.Content.Bytes(), r.Headers[warcBlockDigest])
+	if r.Headers[FieldNameWarcBlockDigest] != "" {
+		checkSha1Hash(r.Content.Bytes(), r.Headers[FieldNameWarcBlockDigest])
 	}
 
 	return nil
