@@ -8,6 +8,7 @@ import (
 type ContentRewriter struct {
 	rules        map[string]RewriteRule
 	rewriters    map[RewriterType]Rewriter
+	rewriteTypes map[string]string
 	contentTypes map[string]string
 }
 
@@ -22,25 +23,25 @@ func NewContentRewriter(options ...func(o *Config)) *ContentRewriter {
 
 // }
 
-type RewriteContentParams struct {
+type RewriteRecordParams struct {
 	Record   *warc.Record
-	Cdxj     cdxj.Writer
+	Index    cdxj.Writer
 	Urlrw    *UrlRewriter
 	Cookierw *CookieRewriter
 }
 
-func (crw *ContentRewriter) RewriteContent(req *RewriteContentParams) {
+// func (crw *ContentRewriter) RewriteContent(req *RewriteRecordParams) (warc.Record, error) {
 
-}
+// }
 
-func (crw *ContentRewriter) rewriteInfo(req *RewriteContentParams) rewriteInfo {
-	return rewriteInfo{
-		req.Record,
-		req.Urlrw,
-		req.Cookierw,
-		false,
-	}
-}
+// func (crw *ContentRewriter) rewriteInfo(req *RewriteContentParams) rewriteInfo {
+// 	return rewriteInfo{
+// 		req.Record,
+// 		req.Urlrw,
+// 		req.Cookierw,
+// 		false,
+// 	}
+// }
 
 type rewriteInfo struct {
 	record      *warc.Record
@@ -53,6 +54,15 @@ type rewriteInfo struct {
 func (rwi rewriteInfo) shouldRewriteContent() bool {
 	return true
 }
+
+// func (rwi rewriteInfo) textType() string {
+// 	rwi.record.Headers[]
+// 	return ""
+// }
+
+// func (rwi rewriteInfo) charset() {
+// 	return ""
+// }
 
 // func (crw *ContentRewriter) rwClass(rule, textType string) (string, string) {
 // 	if textType == "js" {

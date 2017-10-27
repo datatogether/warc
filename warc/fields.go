@@ -15,7 +15,7 @@ const (
 	// indicate a documented and registered scheme to which it conforms (e.g.,
 	// via a URI scheme prefix such as "http:" or "urn:"). Care should be taken
 	// to ensure that this value is written with no internal whitespace.
-	FieldNameWarcRecordId = "Warc-Record-Id"
+	FieldNameWARCRecordID = "WARC-Record-ID"
 	// The number of octets in the block, similar to [RFC2616]. If no block is
 	// present, a value of '0' (zero) shall be used.
 	FieldNameContentLength = "Content-Length"
@@ -25,14 +25,14 @@ const (
 	// Multiple records written as part of a single capture event (see section
 	// 5.7) shall use the same WARC-Date, even though the times of their
 	// writing will not be exactly synchronized.
-	FieldNameWarcDate = "Warc-Date"
+	FieldNameWARCDate = "WARC-Date"
 	// 	The type of WARC record: one of 'warcinfo', 'response', 'resource',
 	// 'request', 'metadata', 'revisit', 'conversion', or 'continuation'. Other
 	// types of WARC records may be defined in extensions of the core format.
 	// Types are further described in WARC Record Types.
 	// A WARC file needs not contain any particular record types, though
 	// starting all WARC files with a "warcinfo" record is recommended.
-	FieldNameWarcType = "Warc-Type"
+	FieldNameWARCType = "WARC-Type"
 	// The MIME type [RFC2045] of the information contained in the record's
 	// block. For example, in HTTP request and response records, this would be
 	// 'application/http' as per section 19.1 of [RFC2616] (or
@@ -54,12 +54,12 @@ const (
 	// the  header only appears on one record.) The WARC Concurrent-to field
 	// shall not be used in 'warcinfo', 'conversion', and 'continuation'
 	// records.
-	FieldNameWarcConcurrentTo = "Warc-Concurrent-To"
+	FieldNameWARCConcurrentTo = "WARC-Concurrent-To"
 	// An optional parameter indicating the algorithm name and calculated value
 	// of a digest applied to the full block of the record.
 	// An example is a SHA-1 labelled Base32 ([RFC3548]) value:
 	// WARC-Block-Digest: sha1:AB2CD3EF4GH5IJ6KL7MN8OPQ
-	FieldNameWarcBlockDigest = "Warc-Block-Digest"
+	FieldNameWARCBlockDigest = "WARC-Block-Digest"
 	// An optional parameter indicating the algorithm name and calculated value
 	// of a digest applied to the payload referred to or contained by the
 	// record - which is not necessarily equivalent to the record block.
@@ -70,20 +70,20 @@ const (
 	// 'revisit' profile (see 'revisit'), or when a record is segmented (the
 	// WARC-Payload-Digest recorded in the first segment of a segmented record
 	// shall be the digest of the payload of the logical record).
-	FieldNameWarcPayloadDigest = "Warc-Payload-Digest"
+	FieldNameWARCPayloadDigest = "WARC-Payload-Digest"
 	// The numeric Internet address contacted to retrieve any included content.
 	// An IPv4 address shall be written as a "dotted quad"; an IPv6 address
 	// shall be written as per [RFC1884]. For an HTTP retrieval, this will be
 	// the IP address used at retrieval time corresponding to the hostname in
-	// the record's target-Uri.
-	FieldNameWarcIpAddress = "Warc-Ip-Address"
+	// the record's target-URI.
+	FieldNameWARCIPAddress = "WARC-IP-Address"
 	// The WARC-Refers-To field may be used to associate a 'metadata' record to
 	// another record it describes. The WARC-Refers-To field may also be used
 	// to associate a record of type 'revisit' or 'conversion' with the
 	// preceding record which helped determine the present record content. The
 	// WARC-Refers-To field shall not be used in 'warcinfo', 'response',
 	// ‘resource’, 'request', and 'continuation' records.
-	FieldNameWarcRefersTo = "Warc-Refers-To"
+	FieldNameWARCRefersTo = "WARC-Refers-To"
 	// The original URI whose capture gave rise to the information content in
 	// this record. In the context of web harvesting, this is the URI that was
 	// the target of a crawler's retrieval request. For a 'revisit' record, it
@@ -92,7 +92,7 @@ const (
 	// WARC-Target-URI appearing in the original record to which the newer
 	// record pertains. The URI in this value shall be properly escaped
 	// according to [RFC3986] and written with no internal whitespace.
-	FieldNameWarcTargetUri = "Warc-Target-Uri"
+	FieldNameWARCTargetURI = "WARC-Target-URI"
 	// For practical reasons, writers of the WARC format may place limits on
 	// the time or storage allocated to archiving a single resource. As a
 	// result, only a truncated portion of the original resource may be
@@ -100,28 +100,28 @@ const (
 	//
 	// Any record may indicate that truncation of its content block has
 	// occurred and give the reason with a 'WARC-Truncated' field.
-	FieldNameWarcTruncated = "Warc-Truncated"
+	FieldNameWARCTruncated = "WARC-Truncated"
 	// When present, indicates the WARC-Record-ID of the associated 'warcinfo'
 	// record for this record. Typically, the Warcinfo-ID parameter is used
 	// when the context of the applicable 'warcinfo' record is unavailable,
 	// such as after distributing single records into separate WARC files. WARC
 	// writing applications (such web crawlers) may choose to always record
 	// this parameter.
-	FieldNameWarcWarcinfoId = "Warc-Warcinfo-Id"
+	FieldNameWARCWarcinfoID = "WARC-Warcinfo-ID"
 	// The WARC-Filename field may be used in 'warcinfo' type records and shall
 	// not be used for other record types.
-	FieldNameWarcFilename = "Warc-Filename"
+	FieldNameWARCFilename = "WARC-Filename"
 	// A URI signifying the kind of analysis and handling applied in a
 	// 'revisit' record. (Like an XML namespace, the URI may, but need not,
 	// return human-readable or machine-readable documentation.) If reading
 	// software does not recognize the given URI as a supported kind of
 	// handling, it shall not attempt to interpret the associated record block.
-	FieldNameWarcProfile = "Warc-Profile"
+	FieldNameWARCProfile = "WARC-Profile"
 	// The content-type of the record's payload as determined by an independent
 	// check. This string shall not be arrived at by blindly promoting an HTTP
 	// Content-Type value up from a record block into the WARC header without
 	// direct analysis of the payload, as such values may often be unreliable.
-	FieldNameWarcIdentifiedPayloadType = "Warc-Identified-Payload-Type"
+	FieldNameWARCIdentifiedPayloadType = "WARC-Identified-Payload-Type"
 	// Reports the current record's relative ordering in a sequence of
 	// segmented records.
 	// In the first segment of any record that is completed in one or more
@@ -129,17 +129,17 @@ const (
 	// value there is "1". In a 'continuation' record, this parameter is also
 	// mandatory. Its value is the sequence number of the current segment in
 	// the logical whole record, increasing by 1 in each next segment.
-	FieldNameWarcSegmentNumber = "Warc-Segment-Number"
+	FieldNameWARCSegmentNumber = "WARC-Segment-Number"
 	// Identifies the starting record in a series of segmented records whose
 	// content blocks are reassembled to obtain a logically complete content
 	// block.
 	// This field is mandatory on all 'continuation' records, and shall not be
 	// used in other records. See the section below, Record segmentation, for
 	// full details on the use of WARC record segmentation.
-	FieldNameWarcSegmentOriginId = "Warc-Segment-Origin-Id"
+	FieldNameWARCSegmentOriginID = "WARC-Segment-Origin-ID"
 	// In the final record of a segmented series, reports the total length of
 	// all segment content blocks when concatenated together.
 	// This field is mandatory on the last 'continuation' record of a series,
 	// and shall not be used elsewhere.
-	FieldNameWarcSegmentTotalLength = "Warc-Segment-Total-Length"
+	FieldNameWARCSegmentTotalLength = "WARC-Segment-Total-Length"
 )

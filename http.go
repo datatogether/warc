@@ -15,7 +15,7 @@ import (
 func DoRequest(req *http.Request) (warc.Records, error) {
 	reqr := RequestRecord(req)
 
-	reqr.Headers[warc.FieldNameWarcDate] = time.Now().Format(time.RFC3339)
+	reqr.Headers[warc.FieldNameWARCDate] = time.Now().Format(time.RFC3339)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func RequestRecord(req *http.Request) *warc.Record {
 		Type: warc.RecordTypeRequest,
 		Headers: map[string]string{
 			warc.FieldNameContentType:  "application/http; msgtype=request",
-			warc.FieldNameWarcRecordId: warc.NewUuid(),
+			warc.FieldNameWARCRecordID: warc.NewUuid(),
 		},
 		Content: bytes.NewBuffer(body),
 	}
@@ -78,9 +78,9 @@ func HttpResponseRecord(res *http.Response) (*warc.Record, error) {
 	resr := &warc.Record{
 		Type: warc.RecordTypeResponse,
 		Headers: map[string]string{
-			warc.FieldNameWarcPayloadDigest: warc.Sha1Digest(raw),
+			warc.FieldNameWARCPayloadDigest: warc.Sha1Digest(raw),
 			warc.FieldNameContentType:       "application/http; msgtype=response",
-			warc.FieldNameWarcRecordId:      warc.NewUuid(),
+			warc.FieldNameWARCRecordID:      warc.NewUuid(),
 		},
 		Content: buf,
 	}

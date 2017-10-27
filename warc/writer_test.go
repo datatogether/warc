@@ -71,10 +71,10 @@ func TestWarcinfoRecord(t *testing.T) {
 		Format: RecordFormatWarc,
 		Type:   RecordTypeWarcInfo,
 		Headers: map[string]string{
-			FieldNameWarcRecordId:  testRecordId,
-			FieldNameWarcType:      RecordTypeWarcInfo.String(),
-			FieldNameWarcFilename:  "testfile.warc.gz",
-			FieldNameWarcDate:      "2000-01-01T00:00:00Z",
+			FieldNameWARCRecordID:  testRecordId,
+			FieldNameWARCType:      RecordTypeWarcInfo.String(),
+			FieldNameWARCFilename:  "testfile.warc.gz",
+			FieldNameWARCDate:      "2000-01-01T00:00:00Z",
 			FieldNameContentType:   "application/warc-fields",
 			FieldNameContentLength: "86",
 		},
@@ -93,12 +93,12 @@ func TestRequestRecord(t *testing.T) {
 		Format: RecordFormatWarc,
 		Type:   RecordTypeRequest,
 		Headers: map[string]string{
-			FieldNameWarcType:          RecordTypeRequest.String(),
-			FieldNameWarcRecordId:      testRecordId,
-			FieldNameWarcTargetUri:     "http://example.com/",
-			FieldNameWarcDate:          "2000-01-01T00:00:00Z",
-			FieldNameWarcPayloadDigest: "sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
-			FieldNameWarcBlockDigest:   "sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO",
+			FieldNameWARCType:          RecordTypeRequest.String(),
+			FieldNameWARCRecordID:      testRecordId,
+			FieldNameWARCTargetURI:     "http://example.com/",
+			FieldNameWARCDate:          "2000-01-01T00:00:00Z",
+			FieldNameWARCPayloadDigest: "sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
+			FieldNameWARCBlockDigest:   "sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO",
 			FieldNameContentType:       "application/http; msgtype=request",
 			FieldNameContentLength:     "54",
 		},
@@ -120,12 +120,12 @@ func TestResponseRecord(t *testing.T) {
 		Headers: map[string]string{
 			FieldNameContentLength:     "97",
 			FieldNameContentType:       "application/http; msgtype=response",
-			FieldNameWarcBlockDigest:   "sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74",
-			FieldNameWarcDate:          "2000-01-01T00:00:00Z",
-			FieldNameWarcPayloadDigest: "sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O",
-			FieldNameWarcRecordId:      "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>",
-			FieldNameWarcTargetUri:     "http://example.com/",
-			FieldNameWarcType:          RecordTypeResponse.String(),
+			FieldNameWARCBlockDigest:   "sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74",
+			FieldNameWARCDate:          "2000-01-01T00:00:00Z",
+			FieldNameWARCPayloadDigest: "sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O",
+			FieldNameWARCRecordID:      "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>",
+			FieldNameWARCTargetURI:     "http://example.com/",
+			FieldNameWARCType:          RecordTypeResponse.String(),
 		},
 		Content: bytes.NewBuffer([]byte("HTTP/1.0 200 OK\r\n" +
 			"Content-Type: text/plain; charset=\"UTF-8\"\r\n" +
@@ -169,8 +169,8 @@ func testWriteRecord(r *Record, expect []byte) error {
 		return fmt.Errorf("byte mismatch: %s != %s", buf.String(), string(expect))
 	}
 
-	if r.Headers[FieldNameWarcBlockDigest] != "" {
-		checkSha1Hash(r.Content.Bytes(), r.Headers[FieldNameWarcBlockDigest])
+	if r.Headers[FieldNameWARCBlockDigest] != "" {
+		checkSha1Hash(r.Content.Bytes(), r.Headers[FieldNameWARCBlockDigest])
 	}
 
 	return nil
@@ -200,10 +200,10 @@ func validateResponse(r *Record) error {
 var WARCINFO_RECORD = []byte(`WARC/1.0\r
 Content-Length: 86\r
 Content-Type: application/warc-fields\r
-Warc-Date: 2000-01-01T00:00:00Z\r
-Warc-Filename: testfile.warc.gz\r
-Warc-Record-Id: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
-Warc-Type: warcinfo\r
+WARC-Date: 2000-01-01T00:00:00Z\r
+WARC-Filename: testfile.warc.gz\r
+WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
+WARC-Type: warcinfo\r
 \r
 software: recorder test\r
 format: WARC File Format 1.0\r
@@ -215,12 +215,12 @@ json-metadata: {"foo": "bar"}\r
 var RESPONSE_RECORD = []byte(`WARC/1.0\r
 Content-Length: 97\r
 Content-Type: application/http; msgtype=response\r
-Warc-Block-Digest: sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74\r
-Warc-Date: 2000-01-01T00:00:00Z\r
-Warc-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r
-Warc-Record-Id: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
-Warc-Target-Uri: http://example.com/\r
-Warc-Type: response\r
+WARC-Block-Digest: sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74\r
+WARC-Date: 2000-01-01T00:00:00Z\r
+WARC-Payload-Digest: sha1:B6QJ6BNJ3R4B23XXMRKZKHLPGJY2VE4O\r
+WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
+WARC-Target-URI: http://example.com/\r
+WARC-Type: response\r
 \r
 HTTP/1.0 200 OK\r
 Content-Type: text/plain; charset="UTF-8"\r
@@ -256,12 +256,12 @@ text\r
 var REQUEST_RECORD = []byte(`WARC/1.0\r
 Content-Length: 54\r
 Content-Type: application/http; msgtype=request\r
-Warc-Block-Digest: sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO\r
-Warc-Date: 2000-01-01T00:00:00Z\r
-Warc-Payload-Digest: sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ\r
-Warc-Record-Id: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
-Warc-Target-Uri: http://example.com/\r
-Warc-Type: request\r
+WARC-Block-Digest: sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO\r
+WARC-Date: 2000-01-01T00:00:00Z\r
+WARC-Payload-Digest: sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ\r
+WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
+WARC-Target-URI: http://example.com/\r
+WARC-Type: request\r
 \r
 GET / HTTP/1.0\r
 User-Agent: foo\r

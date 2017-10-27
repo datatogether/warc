@@ -7,7 +7,6 @@ import (
 	"compress/gzip"
 	"io"
 	"io/ioutil"
-	"net/textproto"
 )
 
 // Reader parses WARC records from an underlying scanner.
@@ -86,12 +85,12 @@ func (r *Reader) readRecord() (rec Record, err error) {
 			if bytes.Equal(token, crlf) {
 				r.phase = scanPhaseContent
 			} else {
-				key = textproto.CanonicalMIMEHeaderKey(string(token))
+				key = CanonicalKey(string(token))
 				r.phase = scanPhaseHeaderValue
 			}
 		case scanPhaseHeaderValue:
 			rec.Headers[key] = string(bytes.TrimSpace(token))
-			if key == FieldNameWarcType {
+			if key == FieldNameWARCType {
 				rec.Type = recordType(rec.Headers[key])
 			}
 			r.phase = scanPhaseHeaderKey
