@@ -28,6 +28,21 @@ func NewUrlRewriter(from, to string) *UrlRewriter {
 	}
 }
 
+// NewRelativeUrlRewriter turns urls that match from's
+// hostname into relative urls
+func NewRelativeUrlRewriter(from string) *UrlRewriter {
+	f, err := url.Parse(from)
+	if err != nil {
+		// TODO - ugh.
+		panic(err)
+	}
+
+	return &UrlRewriter{
+		fromHost: f.Host,
+		to:       &url.URL{},
+	}
+}
+
 func (urw *UrlRewriter) Rewrite(p []byte) []byte {
 	// call to rewrite with empty slice is a no-op
 	if len(p) == 0 {
@@ -45,6 +60,14 @@ func (urw *UrlRewriter) Rewrite(p []byte) []byte {
 		if u.Scheme != urw.to.Scheme {
 			u.Scheme = urw.to.Scheme
 		}
+	} else {
+		return []byte(u.String())
+	}
+
+	// if we're rewriting to relative urls, ensure
+	// empty rewrites to root
+	if urw.to.Host == "" && u.Path == "" {
+		u.Path = "/"
 	}
 
 	return []byte(u.String())

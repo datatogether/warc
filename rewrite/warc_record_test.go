@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestContentRewriter(t *testing.T) {
+func TestWarcRecordRewriter(t *testing.T) {
 	// cases := []struct {
 
 	// }
