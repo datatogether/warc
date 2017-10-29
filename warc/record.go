@@ -7,109 +7,6 @@ import (
 	"time"
 )
 
-// A Record consists of a version indicator (eg: WARC/1.0), zero or more headers,
-// and possibly a content block.
-// Upgrades to specific types of records can be done using type assertions
-// and/or the Type method.
-type Record struct {
-	Format  RecordFormat
-	Type    RecordType
-	Headers Header
-	Content *bytes.Buffer
-}
-
-// func CreateWarcRecord(url string, t RecordType, )
-
-// The ID for this record
-func (r *Record) Id() string {
-	return r.Headers[FieldNameWARCRecordID]
-}
-
-// func (r *Record) Header(key) string {}
-
-// func (r *Record) SetHeader(key, value string) {}
-
-// Datestamp of record creation, returns empty (zero) time if
-// no Warc-Date header is present, or if the header is an
-// invalid timestamp
-func (r *Record) Date() time.Time {
-	t, err := time.Parse(time.RFC3339, r.Headers[FieldNameWARCDate])
-	if err != nil {
-		return time.Time{}
-	}
-	return t
-}
-
-// Length of content block in bytes, returns 0 if
-// Content-Length header is missing or invalid
-func (r *Record) ContentLength() int {
-	len, err := strconv.ParseInt(r.Headers[FieldNameContentLength], 10, 64)
-	if err != nil {
-		return 0
-	}
-	return int(len)
-}
-
-// Write this record to a given writer
-func (r *Record) Write(w io.Writer) error {
-	r.Headers[FieldNameContentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
-	r.Headers[FieldNameWARCType] = r.Type.String()
-	switch r.Type {
-	case RecordTypeResponse, RecordTypeRevisit:
-		r.Headers[FieldNameWARCBlockDigest] = Sha1Digest(r.Content.Bytes())
-	}
-
-	if err := writeHeader(w, r); err != nil {
-		return err
-	}
-	return writeBlock(w, r.Content)
-}
-
-// Bytes returns the record formatted as a byte slice
-func (r *Record) Bytes() ([]byte, error) {
-	buf := &bytes.Buffer{}
-	err := r.Write(buf)
-	return buf.Bytes(), err
-}
-
-// A WARC format file is the simple concatenation of one or more WARC
-// records. The first record usually describes the records to follow. In
-// general, record content is either the direct result of a retrieval
-// attempt — web pages, inline images, URL redirection information, DNS
-// hostname lookup results, standalone files, etc. — or is synthesized
-// material (e.g., metadata, transformed content) that provides additional
-// information about archived content.
-type Records []*Record
-
-// RecordFormat determines different formats for records, this is
-// for any later support of ARC files, should we need to add it.
-type RecordFormat int
-
-const (
-	// Default Record Format is the Warc Format 1.0
-	RecordFormatWarc RecordFormat = iota
-	// unknown / errored record format
-	RecordFormatUnknown
-)
-
-func (r RecordFormat) String() string {
-	switch r {
-	case RecordFormatWarc:
-		return "WARC/1.0"
-	default:
-		return ""
-	}
-}
-
-func recordFormat(s string) RecordFormat {
-	switch s {
-	case "WARC/1.0":
-		return RecordFormatWarc
-	default:
-		return RecordFormatUnknown
-	}
-}
-
 // RecordType enumerates different types of WARC Records
 type RecordType int
 
@@ -224,6 +121,7 @@ func (r RecordType) String() string {
 	}
 }
 
+// recordType parses a RecordType from a string
 func recordType(s string) RecordType {
 	switch s {
 	case RecordTypeWarcInfo.String():
@@ -244,5 +142,102 @@ func recordType(s string) RecordType {
 		return RecordTypeContinuation
 	default:
 		return RecordTypeUnknown
+	}
+}
+
+// A Record consists of a version indicator (eg: WARC/1.0), zero or more headers,
+// and possibly a content block.
+// Upgrades to specific types of records can be done using type assertions
+// and/or the Type method.
+type Record struct {
+	Format  RecordFormat
+	Type    RecordType
+	Headers Header
+	Content *bytes.Buffer
+}
+
+// The ID for this record
+func (r *Record) Id() string {
+	return r.Headers[FieldNameWARCRecordID]
+}
+
+// Datestamp of record creation, returns empty (zero) time if
+// no Warc-Date header is present, or if the header is an
+// invalid timestamp
+func (r *Record) Date() time.Time {
+	t, err := time.Parse(time.RFC3339, r.Headers[FieldNameWARCDate])
+	if err != nil {
+		return time.Time{}
+	}
+	return t
+}
+
+// Length of content block in bytes, returns 0 if
+// Content-Length header is missing or invalid
+func (r *Record) ContentLength() int {
+	len, err := strconv.ParseInt(r.Headers[FieldNameContentLength], 10, 64)
+	if err != nil {
+		return 0
+	}
+	return int(len)
+}
+
+// Write this record to a given writer
+func (r *Record) Write(w io.Writer) error {
+	r.Headers[FieldNameContentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
+	r.Headers[FieldNameWARCType] = r.Type.String()
+	switch r.Type {
+	case RecordTypeResponse, RecordTypeRevisit:
+		r.Headers[FieldNameWARCBlockDigest] = Sha1Digest(r.Content.Bytes())
+	}
+
+	if err := writeHeader(w, r); err != nil {
+		return err
+	}
+	return writeBlock(w, r.Content)
+}
+
+// Bytes returns the record formatted as a byte slice
+func (r *Record) Bytes() ([]byte, error) {
+	buf := &bytes.Buffer{}
+	err := r.Write(buf)
+	return buf.Bytes(), err
+}
+
+// A WARC format file is the simple concatenation of one or more WARC
+// records. The first record usually describes the records to follow. In
+// general, record content is either the direct result of a retrieval
+// attempt — web pages, inline images, URL redirection information, DNS
+// hostname lookup results, standalone files, etc. — or is synthesized
+// material (e.g., metadata, transformed content) that provides additional
+// information about archived content.
+type Records []*Record
+
+// RecordFormat determines different formats for records, this is
+// for any later support of ARC files, should we need to add it.
+type RecordFormat int
+
+const (
+	// Default Record Format is the Warc Format 1.0
+	RecordFormatWarc RecordFormat = iota
+	// unknown / errored record format
+	RecordFormatUnknown
+)
+
+func (r RecordFormat) String() string {
+	switch r {
+	case RecordFormatWarc:
+		return "WARC/1.0"
+	default:
+		return ""
+	}
+}
+
+func recordFormat(s string) RecordFormat {
+	switch s {
+	case "WARC/1.0":
+		return RecordFormatWarc
+	default:
+		return RecordFormatUnknown
 	}
 }
