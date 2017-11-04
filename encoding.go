@@ -27,7 +27,7 @@ func UnmarshalRecord(data []byte) (Record, error) {
 }
 
 // UnmarshalRecords reads a slice of records from a slice of bytes
-func UnmarshalRecords(data []byte) ([]Record, error) {
+func UnmarshalRecords(data []byte) (Records, error) {
 	r, err := NewReader(bytes.NewReader(data))
 	if err != nil {
 		return nil, err

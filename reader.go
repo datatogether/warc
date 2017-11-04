@@ -44,7 +44,7 @@ func (r *Reader) Read() (Record, error) {
 }
 
 // Consume the entire reader, returning a slice of records
-func (r *Reader) ReadAll() (records []Record, err error) {
+func (r *Reader) ReadAll() (records Records, err error) {
 	for {
 		record, err := r.Read()
 		if err == io.EOF {
@@ -53,7 +53,7 @@ func (r *Reader) ReadAll() (records []Record, err error) {
 		if err != nil {
 			return nil, err
 		}
-		records = append(records, record)
+		records = append(records, &record)
 	}
 	return
 }
@@ -91,7 +91,7 @@ func (r *Reader) readRecord() (rec Record, err error) {
 		case scanPhaseHeaderValue:
 			rec.Headers[key] = string(bytes.TrimSpace(token))
 			if key == FieldNameWARCType {
-				rec.Type = recordType(rec.Headers[key])
+				rec.Type = ParseRecordType(rec.Headers[key])
 			}
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseContent:
@@ -156,7 +156,6 @@ func splitKey(data []byte, atEOF bool) (advance int, token []byte, err error) {
 
 func splitValue(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	// TODO - MULTILINE VALUES
-
 	if i := bytes.Index(data, crlf); i == 0 {
 		// if we hit double clrf return
 		return len(crlf), nil, nil
@@ -188,6 +187,15 @@ func dropCR(data []byte) []byte {
 		return data[0 : len(data)-1]
 	}
 	return data
+}
+
+// readBlockBody
+func readBlockBody(data []byte) ([]byte, error) {
+	start := bytes.LastIndex(data, crlf)
+	if start == -1 {
+		return data, nil
+	}
+	return data[start:], nil
 }
 
 const (

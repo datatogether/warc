@@ -1,6 +1,7 @@
 package warc
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/pborman/uuid"
 	"io"
@@ -13,7 +14,7 @@ func NewUuid() string {
 }
 
 // WriteRecords calls Write on each record to w
-func WriteRecords(w io.Writer, records []Record) error {
+func WriteRecords(w io.Writer, records Records) error {
 	for _, rec := range records {
 		if err := rec.Write(w); err != nil {
 			return err
@@ -64,11 +65,20 @@ func WriteRequestStatusAndHeaders(w io.Writer, req *http.Request) error {
 
 func WriteHttpHeaders(w io.Writer, headers http.Header) error {
 	for k, _ := range headers {
-		if _, err := io.WriteString(w, fmt.Sprintf("%s: %s\r\n", k, headers.Get(k))); err != nil {
+		if _, err := io.WriteString(w, fmt.Sprintf("%s: %s\n", k, headers.Get(k))); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// write
+func replaceBlockBody(data, repl []byte) ([]byte, error) {
+	start := bytes.LastIndex(data, crlf)
+	if start == -1 {
+		return repl, nil
+	}
+	return append(data[start:], repl...), nil
 }
 
 // writeDefinedFields takes a map of token constants to values, and writes them to w

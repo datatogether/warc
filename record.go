@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -121,8 +122,8 @@ func (r RecordType) String() string {
 	}
 }
 
-// recordType parses a RecordType from a string
-func recordType(s string) RecordType {
+// ParseRecordType parses a RecordType from a string
+func ParseRecordType(s string) RecordType {
 	switch s {
 	case RecordTypeWarcInfo.String():
 		return RecordTypeWarcInfo
@@ -158,7 +159,13 @@ type Record struct {
 
 // The ID for this record
 func (r *Record) Id() string {
-	return r.Headers[FieldNameWARCRecordID]
+	return strings.TrimSuffix(strings.TrimPrefix(r.Headers[FieldNameWARCRecordID], "<urn:uuid:"), ">")
+}
+
+// TargetUri is a convenience method for getting the uri
+// that this record is targeting
+func (r *Record) TargetUri() string {
+	return r.Headers[FieldNameWARCTargetURI]
 }
 
 // Datestamp of record creation, returns empty (zero) time if
@@ -204,14 +211,22 @@ func (r *Record) Bytes() ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// A WARC format file is the simple concatenation of one or more WARC
-// records. The first record usually describes the records to follow. In
-// general, record content is either the direct result of a retrieval
-// attempt — web pages, inline images, URL redirection information, DNS
-// hostname lookup results, standalone files, etc. — or is synthesized
-// material (e.g., metadata, transformed content) that provides additional
-// information about archived content.
-type Records []*Record
+// Body returns a record's body with any HTTP headers omitted
+func (r *Record) Body() ([]byte, error) {
+	// TODO - actually remove headers
+	// buf := &bytes.Buffer{}
+	// err := writeBlock(buf, r.Content)
+	return readBlockBody(r.Content.Bytes())
+}
+
+func (r *Record) SetBody(body []byte) error {
+	repl, err := replaceBlockBody(r.Content.Bytes(), body)
+	if err != nil {
+		return err
+	}
+	r.Content = bytes.NewBuffer(repl)
+	return nil
+}
 
 // RecordFormat determines different formats for records, this is
 // for any later support of ARC files, should we need to add it.

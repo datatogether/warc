@@ -8,5 +8,5 @@ import (
 // that may interfere with parsing
 func Sanitize(body []byte) (sanitized []byte) {
 	// TODO - lololol finish
-	return bytes.Replace(body, crlf, []byte("CRLF"), -1)
+	return bytes.Replace(body, crlf, []byte("\n"), -1)
 }
