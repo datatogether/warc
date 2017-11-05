@@ -1,7 +1,6 @@
 package warc
 
 import (
-	"fmt"
 	"os"
 	"testing"
 )
@@ -35,11 +34,11 @@ func TestRecordBody(t *testing.T) {
 	}
 	// fmt.Println(records[1].Content.String())
 
-	b, err := records[1].Body()
+	_, err = records[1].Body()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	fmt.Println(string(b))
+	// fmt.Println(string(b))
 }

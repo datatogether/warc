@@ -195,7 +195,7 @@ func readBlockBody(data []byte) ([]byte, error) {
 	if start == -1 {
 		return data, nil
 	}
-	return data[start:], nil
+	return data[start+1:], nil
 }
 
 const (

@@ -1,7 +1,9 @@
 package warc
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -33,4 +35,8 @@ func TestReadAll(t *testing.T) {
 	// for _, r := range records {
 	// 	fmt.Println(r.Type().String())
 	// }
+}
+
+func readTestFile(path string) ([]byte, error) {
+	return ioutil.ReadFile(filepath.Join("testdata", path))
 }
