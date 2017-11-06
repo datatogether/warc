@@ -13,7 +13,7 @@ func TestSanitize(t *testing.T) {
 		t.Error(err.Error())
 		return
 	}
-	wordDocGz, err := readTestFile("test-doc.gz")
+	wordDocGz, err := readTestFile("test-doc.docx.gz")
 	if err != nil {
 		t.Error(err.Error())
 		return
