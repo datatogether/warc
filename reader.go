@@ -195,7 +195,13 @@ func readBlockBody(data []byte) ([]byte, error) {
 	if start == -1 {
 		return data, nil
 	}
-	return data[start+1:], nil
+	r := bytes.NewReader(data[start+len(crlf):])
+	res, err := decompress(r)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Close()
+	return ioutil.ReadAll(res)
 }
 
 const (

@@ -1,6 +1,7 @@
 package warc
 
 import (
+	"bytes"
 	"os"
 	"testing"
 )
@@ -34,11 +35,25 @@ func TestRecordBody(t *testing.T) {
 	}
 	// fmt.Println(records[1].Content.String())
 
-	_, err = records[1].Body()
+	body, err := records[1].Body()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
+	if bytes.HasPrefix(body, crlf) {
+		t.Errorf("content shouldn't have CRLF prefix")
+		return
+	}
+
+	if bytes.HasSuffix(body, crlf) {
+		t.Errorf("content shouldn't have CRLF suffix")
+		return
+	}
+
+	// if len(body) != records[1].ContentLength() {
+	// 	t.Errorf("content length mistmatch: %d != %d", records[1].ContentLength(), len(body))
+	// 	return
+	// }
 	// fmt.Println(string(b))
 }
