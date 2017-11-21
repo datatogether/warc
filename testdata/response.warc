@@ -1,0 +1,196 @@
+WARC/1.0
+Content-Length: 16
+Content-Type: application/http; msgtype=request
+WARC-Date: 2017-11-01T13:53:37-04:00
+WARC-Record-ID: <urn:uuid:357ed23e-1093-46e4-976f-fa79c802774f>
+WARC-Target-URI: http://datatogether.org
+WARC-Type: request
+
+GET / HTTP/1.1
+
+
+WARC/1.0
+Content-Length: 7060
+Content-Type: application/http; msgtype=response
+WARC-Block-Digest: sha1:76QR5IA47LIBAQYRFZ53UJXONDH5M3IJ
+WARC-Identified-Payload-Type: text/html; charset=utf-8
+WARC-Payload-Digest: sha1:YN5KEEDGQYJI5QJHIQTBWK6WWBOS6EQE
+WARC-Record-ID: <urn:uuid:890af90f-3861-4916-b76b-e07c0975eb06>
+WARC-Target-URI: https://datatogether.org/
+WARC-Type: response
+
+Vary: Accept-Encoding
+Last-Modified: Wed, 01 Nov 2017 17:53:38 GMT
+X-Ipfs-Path: /ipns/datatogether.org/
+Strict-Transport-Security: max-age=15768000; includeSubDomains; preload
+Connection: keep-alive
+Access-Control-Expose-Headers: Content-Range, X-Chunked-Output, X-Stream-Output
+Date: Wed, 01 Nov 2017 17:53:38 GMT
+Content-Type: text/html; charset=utf-8
+Etag: W/"QmSYFMvJkrHmekiFzPm7y2pcDsZfoi9XFt26aLpd4sKKd3"
+Access-Control-Allow-Headers: Content-Range, X-Chunked-Output, X-Stream-Output
+Access-Control-Allow-Methods: GET
+Access-Control-Allow-Origin: *
+
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta name="generator" content="Hugo 0.26-DEV" />
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Communities stewarding data together.">
+
+
+<title>
+
+
+    Data Together
+
+</title>
+<link rel="canonical" href="http://datatogether.org/">
+
+
+<script type="text/javascript">
+    var baseURL = 'http:\/\/datatogether.org';
+    var host = baseURL.substring(0, baseURL.length - 1).replace(/\//g, '');
+    if ((host === window.location.host) && (window.location.protocol !== 'https:')) {
+        window.location.protocol = 'https:';
+    }
+</script>
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="./css/style.css">
+
+
+
+
+<link rel="shortcut icon"
+
+    href="./img/favicon.ico"
+
+>
+
+
+
+</head>
+
+
+<body lang="">
+  <div id="root">
+  <div class="app">
+    <div id="navbar" style="position: absolute; width: 100%; height: 50px; left: 0px; top: 0px;">
+      <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-xs-6">
+              <a id="logotype" href="./">[ data, together ]</a>
+            </div>
+            <div class="menu col-md-4 offset-md-2 col-sm-6">
+              <a class="green toggle-menu">Menu</a>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div id="main_menu" class="hide">
+      <a class="blue" href="./">Home</a>
+      <a class="blue" href="./public-record">Public Record</a>
+      <a class="red section-title" href="./activities">Activities</a>
+      <a class="red sub" href="./activities/harvesting">Harvesting</a>
+      <a class="red sub" href="./activities/monitoring">Monitoring</a>
+      <a class="red sub" href="./activities/storing">Storing</a>
+      <a class="red sub" href="./activities/rescuing">Rescuing</a>
+    </div>
+
+<div id="home" class="page">
+    <div class="masthead"><img class="left-lines" src="https://s3.amazonaws.com/datatogether/svg/lines_left.svg">
+        <h1 class="tagline">Communities Stewarding Data Together</h1><img class="right-lines" src="https://s3.amazonaws.com/datatogether/svg/lines_right.svg">
+        <div class="clear"></div>
+    </div>
+    <div class="signup container">
+        <div class="row">
+            <div class="text col-md-6">
+                <p class="sub-emphasis">
+                  Data Together is a new model for distributed, community-driven stewardship of data. This model shows how groups of people, companies, institutions, NGOs, and governments can use decentralized and peer-to-peer web infrastructure to access, discover, verify, and preserve data they care about. We hope to build a future in which networks of collaborators make their data accessible to their peers, immediately discoverable, easily verifiable, and robustly preserved.
+                </p>
+                
+            </div>
+            <div class="image col-md-4 offset-md-2"><img src="https://s3.us-east-2.amazonaws.com/static.archivers.space/add-metadata.png"></div>
+        </div>
+    </div>
+    <div class="left" style="height: 200px; width: 20%; max-width: 200px; margin-right: 25px; margin-top: 100px;"><img class="left-lines" src="https://s3.amazonaws.com/datatogether/svg/lines_left.svg"></div>
+    <div class="signup dweb-view container">
+        <div class="row">
+            <div class="image col-md-4"></div>
+            <div class="text col-md-6">
+                <p class="emphasis">
+                  This site is not a centralized data hosting service. It’s a view onto the decentralized network of individuals, organizations, projects and communities who are using the Data Together model.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="right" style="height: 200px; width: 20%; max-width: 300px; margin-left: 25px; margin-top: 100px;"><img class="right-lines" src="https://s3.amazonaws.com/datatogether/svg/lines_right.svg"></div>
+    <div class="signup community container">
+        <div class="row">
+            <div class="text col-md-6 sub-emphasis">
+                <p>
+                  Data Together is an ongoing, inclusive conversation, an open source community, a collaboration, a model, and a collection of tools, all of which are evolving quickly. To achieve our aims, we are
+                    
+                    <ul>
+                      <li>Developing conceptual and technical models for communities, using decentralized and peer-to-peer infrastructure</li>
+                      <li>Articulating the patterns of actors and technologies involved, and value propositions for those actors</li>
+                      <li>Creating proof-of-concept tools that communities can use to collectively steward data</li>
+                    </ul>
+                </p>
+                <p>
+                  There are many ways to get involved and to contribute, the most important of which  is to test the Data Together model with your community and then share back where things work, where the approach opens new possibilities, and where there’s room for improvement.
+                </p>
+            </div>
+            <div class="image col-md-4 offset-md-2"></div>
+        </div>
+        <div class="container">
+          <div class="row">
+            <h2 class="tagline">Publications and Talks</h2>
+            <div class="text col-md-9">
+              <p>Code4Lib 2017 - Golden Age for Libraries - Storing Data Together</p>
+              <iframe width="560" height="315" src="https://www.youtube.com/embed/xRuPShYelm4" frameborder="0" allowfullscreen></iframe>
+              <p>Slides: <a href="https://github.com/ipfs/datatogether/raw/master/presentations/Code4Lib%202017%20-%20Golden%20Age%20for%20Libraries%20-%20Storing%20Data%20Together.pdf">PDF</a>, <a href="https://github.com/ipfs/datatogether/raw/master/presentations/Code4Lib%202017%20-%20Golden%20Age%20for%20Libraries%20-%20Storing%20Data%20Together.key">Keynote</a> </p>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+
+      <footer id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-xs-6"><a id="logotype" href="https://github.com/datatogether">Github</a></div>
+            </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+
+	
+
+	
+
+
+
+
+<script type="text/javascript" src="./js/site.js"></script>
+
+</body>
+</html>
+
+
+

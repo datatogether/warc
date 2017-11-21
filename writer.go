@@ -1,13 +1,20 @@
 package warc
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/pborman/uuid"
 	"io"
-	"strconv"
+	"net/http"
+	"sort"
 )
 
+func NewUuid() string {
+	return fmt.Sprintf("<urn:uuid:%s>", uuid.New())
+}
+
 // WriteRecords calls Write on each record to w
-func WriteRecords(w io.Writer, records []Record) error {
+func WriteRecords(w io.Writer, records Records) error {
 	for _, rec := range records {
 		if err := rec.Write(w); err != nil {
 			return err
@@ -17,14 +24,11 @@ func WriteRecords(w io.Writer, records []Record) error {
 }
 
 // WriteHeader writes a fully formed header with version to w
-func writeHeader(w io.Writer, t RecordType, fields map[string]string) error {
-	if err := writeWarcVersion(w); err != nil {
+func writeHeader(w io.Writer, r *Record) error {
+	if err := writeWarcVersion(w, r); err != nil {
 		return err
 	}
-	if err := writeField(w, warc_type, t.String()); err != nil {
-		return err
-	}
-	if err := writeFields(w, fields); err != nil {
+	if err := writeFields(w, r.Headers); err != nil {
 		return err
 	}
 	if _, err := io.WriteString(w, "\r\n"); err != nil {
@@ -34,10 +38,8 @@ func writeHeader(w io.Writer, t RecordType, fields map[string]string) error {
 }
 
 // WriteBlock writes all of reader (record content) to w, followed by 2 CRLF's
-func writeBlock(w io.Writer, r []byte) error {
-	// fmt.Println(string(r))
-	// fmt.Println("------")
-	if _, err := w.Write(r); err != nil {
+func writeBlock(w io.Writer, r io.Reader) error {
+	if _, err := io.Copy(w, r); err != nil {
 		return err
 	}
 	// write 2xCRLF
@@ -46,16 +48,54 @@ func writeBlock(w io.Writer, r []byte) error {
 }
 
 // writeWarcVersion writes the warc version header
-func writeWarcVersion(w io.Writer) error {
-	_, err := io.WriteString(w, "WARC/1.0\r\n")
+func writeWarcVersion(w io.Writer, r *Record) error {
+	_, err := io.WriteString(w, r.Format.String()+"\r\n")
 	return err
+}
+
+func WriteRequestStatusAndHeaders(w io.Writer, req *http.Request) error {
+	if req.Method == "" {
+		req.Method = "GET"
+	}
+	_, err := io.WriteString(w, fmt.Sprintf("%s / %s\r\n", req.Method, req.Proto))
+	// io.WriteString(w, fmt.Sprintf("Host: %s\r\n", req.Host))
+	WriteHttpHeaders(w, req.Header)
+	return err
+}
+
+func WriteHttpHeaders(w io.Writer, headers http.Header) error {
+	for k, _ := range headers {
+		if _, err := io.WriteString(w, fmt.Sprintf("%s: %s\n", k, headers.Get(k))); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// write
+func replaceBlockBody(data, repl []byte) ([]byte, error) {
+	start := bytes.LastIndex(data, crlf)
+	if start == -1 {
+		return repl, nil
+	}
+	return append(data[start:], repl...), nil
 }
 
 // writeDefinedFields takes a map of token constants to values, and writes them to w
 // it skips fields who's value is ""
 func writeFields(w io.Writer, fields map[string]string) error {
-	for field, value := range fields {
-		if err := writeField(w, field, value); err != nil {
+	keys := make([]string, len(fields))
+	i := 0
+	for field, _ := range fields {
+		keys[i] = field
+		i++
+	}
+
+	// sort fields alphabetically
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+
+	for _, key := range keys {
+		if err := writeField(w, key, fields[key]); err != nil {
 			return err
 		}
 	}
@@ -71,13 +111,4 @@ func writeField(w io.Writer, key, value string) error {
 	ln := fmt.Sprintf("%s: %s\r\n", key, value)
 	_, err := io.WriteString(w, ln)
 	return err
-}
-
-// convenience func to convert int64s to a string
-func int64String(i int64) string {
-	return strconv.FormatInt(i, 10)
-}
-
-func intString(i int) string {
-	return strconv.FormatInt(int64(i), 10)
 }
