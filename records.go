@@ -42,3 +42,15 @@ func (rs Records) TargetUriRecord(uri string, types ...RecordType) *Record {
 	}
 	return nil
 }
+
+// RemoveTargetUriRecords returns a Records slice with all records
+// that refer to uri removed
+func (rs Records) RemoveTargetUriRecords(uri string) (recs Records) {
+	recs = rs
+	for i, rec := range rs {
+		if rec.TargetUri() == uri {
+			recs = append(recs[:i], recs[i+1:]...)
+		}
+	}
+	return
+}
