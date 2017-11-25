@@ -21,7 +21,7 @@ func (h Header) Set(key, value string) {
 }
 
 // CanonicalKey conforms keys to CanonicalMIMEHeaderKey
-// (which is Captials-For-First-Letter-Separated-By-Dashes)
+// (which is Capitals-For-First-Letter-Separated-By-Dashes)
 // for any general input with exceptions for capitalized "WARC" header keys.
 // The WARC 1.0 spec calls for case-insensitive header keys,
 // but the spec token diagrams list headers as being case-sensitive,
