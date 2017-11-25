@@ -6,30 +6,38 @@ import (
 	"encoding/base32"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	dmp "github.com/sergi/go-diff/diffmatchpatch"
 )
 
-const testRecordId = "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>"
+const testRecordID = "<urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>"
 
 func init() {
 	for _, t := range []*[]byte{
-		&WARCINFO_RECORD,
-		&RESPONSE_RECORD,
-		&RESPONSE_RECORD_2,
-		&REQUEST_RECORD,
-		&REQUEST_RECORD_2,
-		&REVISIT_RECORD_1,
-		&REVISIT_RECORD_2,
-		&RESOURCE_RECORD,
-		&METADATA_RECORD,
-		&DNS_RESPONSE_RECORD,
-		&DNS_RESOURCE_RECORD,
+		&WARCInfoRecord,
+		&ResponseRecord,
+		&ResponseRecord2,
+		&RequestRecord,
+		&RequestRecord2,
+		&RevisitRecord1,
+		&RevisitRecord2,
+		&ResourceRecord,
+		&MetadataRecord,
+		&DNSResponseRecord,
+		&DNSResourceRecord,
 	} {
 		// need to replace '\r' from raw string literals with actual
 		// carriage return character
 		*t = bytes.Replace(*t, []byte{'\\', 'r'}, []byte{0x0d}, -1)
+	}
+}
+
+func TestNewUUID(t *testing.T) {
+	id := NewUUID()
+	if !strings.HasPrefix(id, "<urn:uuid:") {
+		t.Errorf("expected prefix: '%s', got: %s", "<urn:uuid:", id)
 	}
 }
 
@@ -71,7 +79,7 @@ func TestWarcinfoRecord(t *testing.T) {
 		Format: RecordFormatWarc,
 		Type:   RecordTypeWarcInfo,
 		Headers: map[string]string{
-			FieldNameWARCRecordID:  testRecordId,
+			FieldNameWARCRecordID:  testRecordID,
 			FieldNameWARCType:      RecordTypeWarcInfo.String(),
 			FieldNameWARCFilename:  "testfile.warc.gz",
 			FieldNameWARCDate:      "2000-01-01T00:00:00Z",
@@ -83,7 +91,7 @@ func TestWarcinfoRecord(t *testing.T) {
 			"json-metadata: {\"foo\": \"bar\"}\r\n")),
 	}
 
-	if err := testWriteRecord(rec, WARCINFO_RECORD); err != nil {
+	if err := testWriteRecord(rec, WARCInfoRecord); err != nil {
 		t.Error(err)
 	}
 }
@@ -94,7 +102,7 @@ func TestRequestRecord(t *testing.T) {
 		Type:   RecordTypeRequest,
 		Headers: map[string]string{
 			FieldNameWARCType:          RecordTypeRequest.String(),
-			FieldNameWARCRecordID:      testRecordId,
+			FieldNameWARCRecordID:      testRecordID,
 			FieldNameWARCTargetURI:     "http://example.com/",
 			FieldNameWARCDate:          "2000-01-01T00:00:00Z",
 			FieldNameWARCPayloadDigest: "sha1:3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ",
@@ -108,7 +116,7 @@ func TestRequestRecord(t *testing.T) {
 			"\r\n")),
 	}
 
-	if err := testWriteRecord(rec, REQUEST_RECORD); err != nil {
+	if err := testWriteRecord(rec, RequestRecord); err != nil {
 		t.Error(err)
 	}
 }
@@ -135,7 +143,7 @@ func TestResponseRecord(t *testing.T) {
 			"text")),
 	}
 
-	if err := testWriteRecord(rec, RESPONSE_RECORD); err != nil {
+	if err := testWriteRecord(rec, ResponseRecord); err != nil {
 		t.Error(err)
 	}
 }
@@ -197,7 +205,7 @@ func validateResponse(r *Record) error {
 	return nil
 }
 
-var WARCINFO_RECORD = []byte(`WARC/1.0\r
+var WARCInfoRecord = []byte(`WARC/1.0\r
 Content-Length: 86\r
 Content-Type: application/warc-fields\r
 WARC-Date: 2000-01-01T00:00:00Z\r
@@ -212,7 +220,7 @@ json-metadata: {"foo": "bar"}\r
 \r
 `)
 
-var RESPONSE_RECORD = []byte(`WARC/1.0\r
+var ResponseRecord = []byte(`WARC/1.0\r
 Content-Length: 97\r
 Content-Type: application/http; msgtype=response\r
 WARC-Block-Digest: sha1:OS3OKGCWQIJOAOC3PKXQOQFD52NECQ74\r
@@ -231,7 +239,7 @@ text\r
 \r
 `)
 
-var RESPONSE_RECORD_2 = []byte(`
+var ResponseRecord2 = []byte(`
 WARC/1.0\r
 WARC-Type: response\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
@@ -253,7 +261,7 @@ text\r
 \r
 `)
 
-var REQUEST_RECORD = []byte(`WARC/1.0\r
+var RequestRecord = []byte(`WARC/1.0\r
 Content-Length: 54\r
 Content-Type: application/http; msgtype=request\r
 WARC-Block-Digest: sha1:ONEHF6PTXPTTHE3333XHTD2X45TZ3DTO\r
@@ -271,7 +279,7 @@ Host: example.com\r
 \r
 `)
 
-var REQUEST_RECORD_2 = []byte(`
+var RequestRecord2 = []byte(`
 WARC/1.0\r
 WARC-Type: request\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
@@ -290,7 +298,7 @@ Content-Length: 17\r
 \r
 `)
 
-var REVISIT_RECORD_1 = []byte(`
+var RevisitRecord1 = []byte(`
 WARC/1.0\r
 WARC-Type: revisit\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
@@ -308,7 +316,7 @@ Content-Length: 0\r
 \r
 `)
 
-var REVISIT_RECORD_2 = []byte(`
+var RevisitRecord2 = []byte(`
 WARC/1.0\r
 WARC-Type: revisit\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
@@ -330,7 +338,7 @@ Custom-Header: somevalue\r
 \r
 `)
 
-var RESOURCE_RECORD = []byte(`
+var ResourceRecord = []byte(`
 WARC/1.0\r
 WARC-Type: resource\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
@@ -346,7 +354,7 @@ text\r
 \r
 `)
 
-var METADATA_RECORD = []byte(`
+var MetadataRecord = []byte(`
 WARC/1.0\r
 WARC-Type: metadata\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
@@ -361,7 +369,7 @@ Content-Length: 67\r
 \r
 `)
 
-var DNS_RESPONSE_RECORD = []byte(`
+var DNSResponseRecord = []byte(`
 WARC/1.0\r
 WARC-Type: response\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r
@@ -379,7 +387,7 @@ google.com.     185 IN  A   209.148.113.250
 \r\r
 `)
 
-var DNS_RESOURCE_RECORD = []byte(`
+var DNSResourceRecord = []byte(`
 WARC/1.0\r
 WARC-Type: resource\r
 WARC-Record-ID: <urn:uuid:12345678-feb0-11e6-8f83-68a86d1772ce>\r

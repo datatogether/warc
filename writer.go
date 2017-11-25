@@ -9,7 +9,8 @@ import (
 	"sort"
 )
 
-func NewUuid() string {
+// NewUUID generates a new version 4 uuid
+func NewUUID() string {
 	return fmt.Sprintf("<urn:uuid:%s>", uuid.New())
 }
 
@@ -53,18 +54,22 @@ func writeWarcVersion(w io.Writer, r *Record) error {
 	return err
 }
 
-func WriteRequestStatusAndHeaders(w io.Writer, req *http.Request) error {
+// WriteRequestMethodAndHeaders records details from an http.Request to an
+// io.Writer, separating entries with newlines
+func WriteRequestMethodAndHeaders(w io.Writer, req *http.Request) error {
 	if req.Method == "" {
 		req.Method = "GET"
 	}
-	_, err := io.WriteString(w, fmt.Sprintf("%s / %s\r\n", req.Method, req.Proto))
+	_, err := io.WriteString(w, fmt.Sprintf("%s / %s\n", req.Method, req.Proto))
 	// io.WriteString(w, fmt.Sprintf("Host: %s\r\n", req.Host))
-	WriteHttpHeaders(w, req.Header)
+	WriteHTTPHeaders(w, req.Header)
 	return err
 }
 
-func WriteHttpHeaders(w io.Writer, headers http.Header) error {
-	for k, _ := range headers {
+// WriteHTTPHeaders writes all http headers to an io.Writer, separated by newlines
+// Used to add http headers to a record
+func WriteHTTPHeaders(w io.Writer, headers http.Header) error {
+	for k := range headers {
 		if _, err := io.WriteString(w, fmt.Sprintf("%s: %s\n", k, headers.Get(k))); err != nil {
 			return err
 		}
@@ -72,7 +77,8 @@ func WriteHttpHeaders(w io.Writer, headers http.Header) error {
 	return nil
 }
 
-// write
+// replaceBlockBody replaces the body of a warc record, leaving
+// and written headers in place
 func replaceBlockBody(data, repl []byte) ([]byte, error) {
 	start := bytes.LastIndex(data, crlf)
 	if start == -1 {
@@ -86,7 +92,7 @@ func replaceBlockBody(data, repl []byte) ([]byte, error) {
 func writeFields(w io.Writer, fields map[string]string) error {
 	keys := make([]string, len(fields))
 	i := 0
-	for field, _ := range fields {
+	for field := range fields {
 		keys[i] = field
 		i++
 	}

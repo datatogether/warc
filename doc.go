@@ -1,7 +1,6 @@
-// warc is an implementation of ISO28500 1.0, the WebARCive specfication.
+// Package warc is an implementation of ISO28500 1.0, the WebARCive specfication.
 // it provides readers, writers, and structs for working with warc records.
 // from the spec:
-
 // The WARC (Web ARChive) file format offers a convention for concatenating
 // multiple resource records (data objects), each consisting of a set of
 // simple text headers and an arbitrary data block into one long file. The

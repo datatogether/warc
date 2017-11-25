@@ -6,10 +6,10 @@ import (
 	"testing"
 )
 
-func TestRecordId(t *testing.T) {
+func TestRecordID(t *testing.T) {
 	r := &Record{}
-	if r.Id() != "" {
-		t.Errorf("id mismatch. expected '', got: '%s'", r.Id())
+	if r.ID() != "" {
+		t.Errorf("id mismatch. expected '', got: '%s'", r.ID())
 	}
 }
 

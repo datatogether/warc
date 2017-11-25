@@ -12,8 +12,10 @@ import (
 type RecordType int
 
 const (
+	// RecordTypeUnknown is the default type of record, which shouldn't be
+	// accepted by anything that wants to know a type of record.
 	RecordTypeUnknown RecordType = iota
-	// A 'warcinfo' record describes the records that follow it, up through end
+	// RecordTypeWarcInfo describes the records that follow it, up through end
 	// of file, end of input, or until next 'warcinfo' record. Typically, this
 	// appears once and at the beginning of a WARC file. For a web archive, it
 	// often contains information about the web crawl which generated the
@@ -23,13 +25,13 @@ const (
 	// fields include, but are not limited to, all \[DCMI\] plus the following
 	// field definitions. All fields are optional.
 	RecordTypeWarcInfo
-	// A 'response' record should contain a complete scheme-specific response,
+	// RecordTypeResponse should contain a complete scheme-specific response,
 	// including network protocol information where possible. The exact
 	// contents of a 'response' record are determined not just by the record
 	// type but also by the URI scheme of the record's target-URI, as described
 	// below.
 	RecordTypeResponse
-	// A 'resource' record contains a resource, without full protocol response
+	// RecordTypeResource contains a resource, without full protocol response
 	// information. For example: a file directly retrieved from a locally
 	// accessible repository or the result of a networked retrieval where the
 	// protocol information has been discarded. The exact contents of a
@@ -39,13 +41,13 @@ const (
 	// A 'resource' record, with a synthesized target-URI, may also be used to
 	// archive other artefacts of a harvesting process inside WARC files.
 	RecordTypeResource
-	// A 'request' record holds the details of a complete scheme-specific
+	// RecordTypeRequest holds the details of a complete scheme-specific
 	// request, including network protocol information where possible. The
 	// exact contents of a 'request' record are determined not just by the
 	// record type but also by the URI scheme of the record's target-URI, as
 	// described below.
 	RecordTypeRequest
-	// A 'metadata' record contains content created in order to further
+	// RecordTypeMetadata contains content created in order to further
 	// describe, explain, or accompany a harvested resource, in ways not
 	// covered by other record types. A 'metadata' record will almost always
 	// refer to another record of another type, with that other record holding
@@ -58,7 +60,7 @@ const (
 	// Allowable fields include all \[DCMI\] plus the following field
 	// definitions. All fields are optional.
 	RecordTypeMetadata
-	// A 'revisit' record describes the revisitation of content already
+	// RecordTypeRevisit describes the revisitation of content already
 	// archived, and might include only an abbreviated content body which has
 	// to be interpreted relative to a previous record. Most typically, a
 	// 'revisit' record is used instead of a 'response' or 'resource' record to
@@ -68,7 +70,7 @@ const (
 	// benefits of reduced storage size or improved cross-referencing of
 	// material are desired.
 	RecordTypeRevisit
-	// A 'conversion' record shall contain an alternative version of another
+	// RecordTypeConversion shall contain an alternative version of another
 	// record's content that was created as the result of an archival process.
 	// Typically, this is used to hold content transformations that maintain
 	// viability of content after widely available rendering tools for the
@@ -84,7 +86,7 @@ const (
 	// Wherever practical, a 'conversion' record should contain a
 	// 'WARC-Refers-To' field to identify the prior material converted.
 	RecordTypeConversion
-	// Record blocks from 'continuation' records must be appended to
+	// RecordTypeContinuation blocks from 'continuation' records must be appended to
 	// corresponding prior record block(s) (e.g., from other WARC files) to
 	// create the logically complete full-sized original record. That is,
 	// 'continuation' records are used when a record that would otherwise cause
@@ -157,18 +159,18 @@ type Record struct {
 	Content *bytes.Buffer
 }
 
-// The ID for this record
-func (r *Record) Id() string {
+// ID gives The ID for this record
+func (r *Record) ID() string {
 	return strings.TrimSuffix(strings.TrimPrefix(r.Headers[FieldNameWARCRecordID], "<urn:uuid:"), ">")
 }
 
-// TargetUri is a convenience method for getting the uri
+// TargetURI is a convenience method for getting the uri
 // that this record is targeting
-func (r *Record) TargetUri() string {
+func (r *Record) TargetURI() string {
 	return r.Headers[FieldNameWARCTargetURI]
 }
 
-// Datestamp of record creation, returns empty (zero) time if
+// Date gives the time.Time of record creation, returns empty (zero) time if
 // no Warc-Date header is present, or if the header is an
 // invalid timestamp
 func (r *Record) Date() time.Time {
@@ -179,7 +181,7 @@ func (r *Record) Date() time.Time {
 	return t
 }
 
-// Length of content block in bytes, returns 0 if
+// ContentLength of content block in bytes, returns 0 if
 // Content-Length header is missing or invalid
 func (r *Record) ContentLength() int {
 	len, err := strconv.ParseInt(r.Headers[FieldNameContentLength], 10, 64)
@@ -219,6 +221,8 @@ func (r *Record) Body() ([]byte, error) {
 	return readBlockBody(r.Content.Bytes())
 }
 
+// SetBody sets the body of the record, leaving any written
+// http headers in record
 func (r *Record) SetBody(body []byte) error {
 	repl, err := replaceBlockBody(r.Content.Bytes(), body)
 	if err != nil {
@@ -233,9 +237,9 @@ func (r *Record) SetBody(body []byte) error {
 type RecordFormat int
 
 const (
-	// Default Record Format is the Warc Format 1.0
+	// RecordFormatWarc default is the Warc Format 1.0
 	RecordFormatWarc RecordFormat = iota
-	// unknown / errored record format
+	// RecordFormatUnknown reporesents unknown / errored record format
 	RecordFormatUnknown
 )
 

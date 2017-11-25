@@ -43,7 +43,7 @@ func (r *Reader) Read() (Record, error) {
 	return r.readRecord()
 }
 
-// Consume the entire reader, returning a slice of records
+// ReadAll Consumes the entire reader, returning a slice of records
 func (r *Reader) ReadAll() (records Records, err error) {
 	for {
 		record, err := r.Read()
@@ -55,7 +55,6 @@ func (r *Reader) ReadAll() (records Records, err error) {
 		}
 		records = append(records, &record)
 	}
-	return
 }
 
 // scanphase denotes different "modes" for scanning

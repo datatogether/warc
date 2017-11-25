@@ -7,6 +7,7 @@ import (
 	"fmt"
 )
 
+// Sha1Digest calculates the shasum of a slice of bytes
 func Sha1Digest(data []byte) string {
 	hash := sha1.Sum(data)
 	buf := &bytes.Buffer{}
