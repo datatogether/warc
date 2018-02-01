@@ -23,7 +23,7 @@ package warc
 
 ## License & Copyright
 
-[Affero General Public License v3](http://www.gnu.org/licenses/agpl.html) ]
+[Affero General Public License v3](http://www.gnu.org/licenses/agpl.html)
 
 ## Getting Involved
 
