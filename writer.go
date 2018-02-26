@@ -3,10 +3,11 @@ package warc
 import (
 	"bytes"
 	"fmt"
-	"github.com/pborman/uuid"
 	"io"
 	"net/http"
 	"sort"
+
+	"github.com/pborman/uuid"
 )
 
 // NewUUID generates a new version 4 uuid
@@ -54,16 +55,10 @@ func writeWarcVersion(w io.Writer, r *Record) error {
 	return err
 }
 
-// WriteRequestMethodAndHeaders records details from an http.Request to an
-// io.Writer, separating entries with newlines
+// WriteRequestMethodAndHeaders calls req.Write(w). (deprecated, see
+// NewRequestResponseRecords)
 func WriteRequestMethodAndHeaders(w io.Writer, req *http.Request) error {
-	if req.Method == "" {
-		req.Method = "GET"
-	}
-	_, err := io.WriteString(w, fmt.Sprintf("%s / %s\n", req.Method, req.Proto))
-	// io.WriteString(w, fmt.Sprintf("Host: %s\r\n", req.Host))
-	WriteHTTPHeaders(w, req.Header)
-	return err
+	return req.Write(w)
 }
 
 // WriteHTTPHeaders writes all http headers to an io.Writer, separated by newlines
