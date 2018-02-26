@@ -92,4 +92,21 @@ func TestRequestResponseRecords(t *testing.T) {
 	if !strings.Contains(str, warcinfoID) {
 		t.Error("Warcinfo-ID not found in response record")
 	}
+
+	// t.Logf("%#v", respRecord.Content)
+
+	cdxFmt := []byte(`NbamskrMSVgu`)
+	cdxLine := make([]string, len(cdxFmt))
+	cdxFmt2 := make(CDXFormat)
+	for idx, v := range cdxFmt {
+		cdxFmt2[v] = idx
+	}
+	respRecord.CDXLine(cdxFmt2, cdxLine)
+	if cdxLine[cdxFmt2['m']] != "text/plain" {
+		t.Error("CDXLine() failed to parse mime type")
+	}
+	if cdxLine[cdxFmt2['s']] != "200" {
+		t.Error("CDXLine() failed to parse response code")
+	}
+	//t.Log(cdxLine)
 }

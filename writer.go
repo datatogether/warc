@@ -15,7 +15,7 @@ func NewUUID() string {
 	return fmt.Sprintf("<urn:uuid:%s>", uuid.New())
 }
 
-// WriteRecords calls Write on each record to w
+// WriteRecords calls Write on each record to w.
 func WriteRecords(w io.Writer, records Records) error {
 	for _, rec := range records {
 		if err := rec.Write(w); err != nil {
