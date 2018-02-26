@@ -118,7 +118,6 @@ func NewRequestResponseRecords(info CaptureHelper, req *http.Request, resp *http
 		teedBody := io.TeeReader(clonedBody, reqDigester)
 		req.Body = ioutil.NopCloser(teedBody)
 	}
-	req.TransferEncoding = []string{"identity"}
 	err := req.Write(reqRec.Content)
 	reqRec.Headers.Set(FieldNameWARCPayloadDigest, formatDigest(reqDigester.Sum(nil)))
 	if err != nil {

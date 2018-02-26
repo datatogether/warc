@@ -15,7 +15,7 @@ func TestRequestResponseRecords(t *testing.T) {
 		hdr2         = "custom header content 25b1be4eb31c"
 		path         = "/4f3f2471fd8d"
 		responseBody = "Response body\n40f9fcaa4120"
-		requestBody  = "Request body\n1af849d49e58"
+		requestStr   = "Request body\n1af849d49e58"
 	)
 	var warcinfoID = NewUUID()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +23,8 @@ func TestRequestResponseRecords(t *testing.T) {
 		fmt.Fprint(w, responseBody)
 	}))
 	defer srv.Close()
+
+	requestBody := strings.Repeat(requestStr, 50)
 	body := strings.NewReader(requestBody)
 	helper := CaptureHelper{
 		WarcinfoID:        warcinfoID,
@@ -58,7 +60,7 @@ func TestRequestResponseRecords(t *testing.T) {
 	var buf bytes.Buffer
 	reqRecord.Write(&buf)
 	str := buf.String()
-	// fmt.Fprint(os.Stderr, str)
+	// fmt.Println(str)
 	if !strings.Contains(str, path) {
 		t.Error("Path not found in request record")
 	}
@@ -68,6 +70,10 @@ func TestRequestResponseRecords(t *testing.T) {
 	if !strings.Contains(str, requestBody) {
 		t.Error("Body not found in request record")
 	}
+	if strings.Contains(str, "Transfer-Encoding: chunked") {
+		t.Error("Request written with chunked Transfer-Encoding")
+	}
+
 	buf.Reset()
 	respRecord.Write(&buf)
 	str = buf.String()
