@@ -66,8 +66,8 @@ func (c *CaptureHelper) resetRequestBody(req *http.Request) io.Reader {
 	panic("capturehelper: unable to rewind request body")
 }
 
-// Creates a new request/response record pair for the provided HTTP request and
-// response.
+// NewRequestResponseRecords creates a new request/response record pair for the
+// provided HTTP request and response.
 //
 // Make sure to provide the request Body in the CaptureHelper so it can be read
 // from again.  The response Body should not yet have been used; if the caller
