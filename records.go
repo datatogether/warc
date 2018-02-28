@@ -1,13 +1,14 @@
 package warc
 
-// Records is a slice of records
-// A WARC format file is the simple concatenation of one or more WARC
-// records. The first record usually describes the records to follow. In
-// general, record content is either the direct result of a retrieval
-// attempt — web pages, inline images, URL redirection information, DNS
-// hostname lookup results, standalone files, etc. — or is synthesized
-// material (e.g., metadata, transformed content) that provides additional
-// information about archived content.
+// Records provides utility functions for slices of records.
+//
+// A WARC format file is the simple concatenation of one or more WARC records.
+// The first record usually describes the records to follow.  In general,
+// record content is either the direct result of a retrieval attempt — web
+// pages, inline images, URL redirection information, DNS hostname lookup
+// results, standalone files, etc. — or is synthesized material (e.g.,
+// metadata, transformed content) that provides additional information about
+// archived content.
 type Records []*Record
 
 // FilterTypes return all record types that match a provide
