@@ -191,7 +191,7 @@ func (r *Record) ContentLength() int {
 	return int(len)
 }
 
-// Write this record to a given writer
+// Write this record to the given writer.
 func (r *Record) Write(w io.Writer) error {
 	r.Headers[FieldNameContentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
 	r.Headers[FieldNameWARCType] = r.Type.String()
@@ -203,7 +203,7 @@ func (r *Record) Write(w io.Writer) error {
 	if err := writeHeader(w, r); err != nil {
 		return err
 	}
-	return writeBlock(w, r.Content)
+	return writeBlock(w, bytes.NewReader(r.Content.Bytes()))
 }
 
 // Bytes returns the record formatted as a byte slice
