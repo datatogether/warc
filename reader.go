@@ -18,7 +18,7 @@ type Reader struct {
 	rc      io.ReadCloser  // raw io.readerCloser
 	scanner *bufio.Scanner // scanner to pull tokens from
 	phase   scanPhase
-	bodyLen int
+	bodyLen int64
 }
 
 // NewReader creates a new WARC reader from an io.Reader
@@ -89,6 +89,11 @@ func (r *Reader) readRecord() (rec Record, err error) {
 				r.phase = scanPhaseContent
 				r.bodyLen = -1
 				r.checkContentLength(&rec)
+
+				rec.Content = bytes.NewBuffer(nil)
+				if r.bodyLen != -1 {
+					rec.Content.Grow(int(r.bodyLen))
+				}
 			} else {
 				key = CanonicalKey(string(token))
 				r.phase = scanPhaseHeaderValue
@@ -100,13 +105,14 @@ func (r *Reader) readRecord() (rec Record, err error) {
 			}
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseContent:
-			// need to copy here b/c the underlying bytes shift as the buffer
-			// moves through the file
-			buf := make([]byte, len(r.scanner.Bytes()))
-			copy(buf, r.scanner.Bytes())
-			rec.Content = bytes.NewBuffer(buf)
-			r.phase = scanPhaseVersion
-			return
+			by := r.scanner.Bytes()
+			bytes.NewReader(by).WriteTo(rec.Content)
+			if len(by) == 0 {
+				r.phase = scanPhaseVersion
+				return
+			} else if r.bodyLen != -1 {
+				r.bodyLen -= int64(len(by))
+			}
 		}
 	}
 
@@ -126,7 +132,7 @@ func (r *Reader) checkContentLength(rec *Record) error {
 	}
 	if rec.Headers[FieldNameContentLength] != "" {
 		// Non-segmented, have Content-Length => read the whole thing in one block
-		length, err := strconv.Atoi(rec.Headers[FieldNameContentLength])
+		length, err := strconv.ParseInt(rec.Headers[FieldNameContentLength], 10, 64)
 		if err != nil {
 			return errors.Wrap(err, "warc: Invalid Content-Length")
 		}
@@ -213,15 +219,16 @@ func splitBlock(data []byte, atEOF bool) (advance int, token []byte, err error) 
 	return 0, nil, nil
 }
 
-func splitFull(data []byte, atEOF bool, contentLength int) (advance int, token []byte, err error) {
-	// TODO - causes bugs for >2GB files on 32 bit systems
-	// those bugs were already present, though, since we keep content as a single byte array
-	length := int(contentLength)
-	if length <= len(data) {
+func splitFull(data []byte, atEOF bool, bytesLeft int64) (advance int, token []byte, err error) {
+	length := int(bytesLeft)
+	if bytesLeft <= int64(len(data)) {
 		return length, data[:length], nil
 	}
 	if atEOF {
-		return len(data), data, errors.Errorf("warc: unexpected EOF in record content, got %v bytes / %v expected", len(data), contentLength)
+		return len(data), data, errors.Errorf("warc: unexpected EOF in record content, got %v bytes (expected %v more)", len(data), bytesLeft)
+	}
+	if len(data) > 0 {
+		return len(data), data, nil
 	}
 	return 0, nil, nil
 }
