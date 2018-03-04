@@ -22,6 +22,11 @@ type flusher interface {
 	Flush() error
 }
 
+type closeResetWriter interface {
+	Close() error
+	Reset(w io.Writer)
+}
+
 // Writer provides functionality for writing WARC files in compressed and
 // uncompressed formats.
 //
@@ -29,6 +34,7 @@ type flusher interface {
 type Writer struct {
 	seekW io.WriteSeeker
 	wr    io.Writer
+	cmprs bool
 
 	// RecordCallback will be called after each record is written to the file.
 	// If a WriteSeeker was not provided, the provided positions will be
@@ -48,6 +54,7 @@ func NewWriterCompressed(rawFile io.WriteSeeker, cmprsWriter *gzip.Writer) (*Wri
 	w := &Writer{
 		seekW: rawFile,
 		wr:    cmprsWriter,
+		cmprs: true,
 	}
 	return w, nil
 }
@@ -99,88 +106,60 @@ func (c *countWriter) Seek(offset int64, whence int) (int64, error) {
 	return c.count, nil
 }
 
-func (w *Writer) WriteRecord(r *Record) error {
-	var startPos, endPos int64
-	var err2 error
-	var errs []error
-
+// WriteRecord adds the record to the WARC file and returns the file offsets
+// the record was written at.
+//
+// No processing is done to the Record contents beyond those mentioned in
+// Record.Write.  If clients want extra processing (e.g. setting the
+// Warcinfo-Id header) they are encouraged to create a wrapper.
+func (w *Writer) WriteRecord(rec *Record) (startPos, endPos int64, err error) {
 	if w.seekW != nil {
-		startPos, err2 = w.seekW.Seek(0, io.SeekCurrent)
-		if err2 != nil {
-			errs = append(errs, errors.Wrap(err2, "warc writer: seek 0"))
+		startPos, err = w.seekW.Seek(0, io.SeekCurrent)
+		err = errors.Wrap(err, "warc writer: seek 0")
+		if err != nil {
+			return
 		}
 	}
 
-	// don't return quite yet - still need to do RecordCallback
-	err2 = r.Write(w.wr)
-	if err2 != nil {
-		errs = append(errs, errors.Wrap(err2, "warc writer: write record"))
+	err = rec.Write(w.wr)
+	err = errors.Wrap(err, "warc writer: write record")
+	if err != nil {
+		return
 	}
 
-	if gzW, ok := w.wr.(*gzip.Writer); ok {
-		// flush is not sufficient, need to Close/Reset
-		err2 = gzW.Close()
-		if err2 != nil {
-			errs = append(errs, errors.Wrap(err2, "warc writer: flush"))
+	// flush is not sufficient for gzip writer, need to Close/Reset
+	closeReset, crOK := w.wr.(closeResetWriter)
+	crOK &= w.cmprs
+	if flusher, ok := w.wr.(flusher); ok && !crOK {
+		err = errors.Wrap(flusher.Flush(), "warc writer: flush")
+		if err != nil {
+			return
 		}
-		gzW.Reset(w.seekW)
 	}
+	if crOK {
+		err = errors.Wrap(closeReset.Close(), "warc writer: flush")
+		if err != nil {
+			return
+		}
+	}
+	// check the position BETWEEN close / reset
 	if w.seekW != nil {
-		endPos, err2 = w.seekW.Seek(0, io.SeekCurrent)
-		if err2 != nil {
-			errs = append(errs, errors.Wrap(err2, "warc writer: seek 0"))
+		endPos, err = w.seekW.Seek(0, io.SeekCurrent)
+		err = errors.Wrap(err, "warc writer: seek 0")
+		if err != nil {
+			return
 		}
 	}
-
-	if w.RecordCallback != nil {
-		w.RecordCallback(r, startPos, endPos)
+	if crOK {
+		closeReset.Reset(w.seekW)
 	}
 
-	if len(errs) == 1 {
-		return errs[0]
-	} else if len(errs) > 1 {
-		return simpleMultiError(errs)
-	}
-	return nil
+	return
 }
 
 // Close cleans up any resources the warc.Writer might be holding on to.
 func (w *Writer) Close() error {
 	return nil
-}
-
-type simpleMultiError []error
-
-func (m simpleMultiError) Cause() error {
-	return m[0]
-}
-
-func (m simpleMultiError) Error() string {
-	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%s\nand %d other errors:\n", m[0], len(m)-1)
-	for i := 1; i < len(m); i++ {
-		fmt.Fprintln(&buf, m[i])
-	}
-	return buf.String()
-}
-
-func (m simpleMultiError) Format(s fmt.State, verb rune) {
-	switch verb {
-	case 'v':
-		if s.Flag('+') {
-			fmt.Fprintf(s, "%d different errors\n", len(m))
-			for i := 0; i < len(m); i++ {
-				fmt.Fprintf(s, "%+v\n", m[i])
-			}
-			return
-		}
-		fallthrough
-	case 's', 'q':
-		fmt.Fprintf(s, "%d different errors\n", len(m))
-		for i := 0; i < len(m); i++ {
-			fmt.Fprintf(s, "%s\n", m[i])
-		}
-	}
 }
 
 // WriteRecords calls Write on each record to w.
