@@ -3,7 +3,7 @@ Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 Content-Type: text/plain
 Warc-Block-Digest: sha1:28ee620ee6d9ed280505fa9faca0ba357db82ffd
-Content-Length: 302
+Content-Length: 306
 
 Alice was beginning to get very tired of sitting by her sister on the
 bank, and of having nothing to do: once or twice she had peeped into the
@@ -15,7 +15,7 @@ WARC/1.0
 Warc-Type: resource
 Content-Type: text/plain
 Warc-Block-Digest: sha1:3c7c9a6136ff74eea4d08b11bcbdc16228f305d0
-Content-Length: 289
+Content-Length: 293
 Warc-Date: 2015-07-29T20:10:45+02:00
 
 So she was considering in her own mind (as well as she could, for the
@@ -27,7 +27,7 @@ close by her.
 WARC/1.0
 Content-Type: text/plain
 Warc-Block-Digest: sha1:be198b8dbb187b92af0157a6dce786ded5b69629
-Content-Length: 733
+Content-Length: 743
 Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 
@@ -44,7 +44,7 @@ after it, and fortunately was just in time to see it pop down a large
 rabbit-hole under the hedge.
 
 WARC/1.0
-Content-Length: 109
+Content-Length: 110
 Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 Content-Type: text/plain
@@ -56,7 +56,7 @@ in the world she was to get out again.
 WARC/1.0
 Content-Type: text/plain
 Warc-Block-Digest: sha1:6435aa05dde53aee9c9f276bb857c869a6c9c70e
-Content-Length: 219
+Content-Length: 222
 Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 
@@ -66,7 +66,7 @@ about stopping herself before she found herself falling down a very deep
 well.
 
 WARC/1.0
-Content-Length: 704
+Content-Length: 714
 Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 Content-Type: text/plain
@@ -87,7 +87,7 @@ she fell past it.
 WARC/1.0
 Content-Type: text/plain
 Warc-Block-Digest: sha1:309231bd60e4ef85ed3a841a419aa59f1cb9b11b
-Content-Length: 259
+Content-Length: 262
 Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 
@@ -99,7 +99,7 @@ of the house!' (Which was very likely true.)
 WARC/1.0
 Content-Type: text/plain
 Warc-Block-Digest: sha1:e6066ba6c9767cb43122993e6509664201a242fd
-Content-Length: 705
+Content-Length: 714
 Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 
@@ -117,7 +117,7 @@ Longitude either, but thought they were nice grand words to say.)
 WARC/1.0
 Content-Type: text/plain
 Warc-Block-Digest: sha1:162dea8c101a7634462896c5c1e138d315be8b63
-Content-Length: 681
+Content-Length: 690
 Warc-Date: 2015-07-29T20:10:45+02:00
 Warc-Type: resource
 

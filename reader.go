@@ -83,6 +83,9 @@ func (r *Reader) readRecord() (rec Record, err error) {
 		switch r.phase {
 		case scanPhaseVersion:
 			rec.Format = recordFormat(string(bytes.TrimSpace(token)))
+			if rec.Format == RecordFormatUnknown {
+				return rec, errors.Errorf("Unknown record format: '%s'", string(bytes.TrimSpace(token)))
+			}
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseHeaderKey:
 			if bytes.Equal(token, crlf) {
@@ -167,6 +170,13 @@ var crlf = []byte("\r\n")
 var doubleCrlf = []byte("\r\n\r\n")
 
 func splitLine(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if bytes.HasPrefix(data, crlf) {
+		// Found block-end from previous record. Skip.
+		if bytes.HasPrefix(data, doubleCrlf) {
+			return len(doubleCrlf), nil, nil
+		}
+		return len(crlf), nil, nil
+	}
 	if i := bytes.IndexByte(data, '\n'); i >= 0 {
 		// We have a full newline-terminated line.
 		return i + 1, dropCR(data[0:i]), nil

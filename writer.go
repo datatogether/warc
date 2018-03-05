@@ -129,7 +129,7 @@ func (w *Writer) WriteRecord(rec *Record) (startPos, endPos int64, err error) {
 
 	// flush is not sufficient for gzip writer, need to Close/Reset
 	closeReset, crOK := w.wr.(closeResetWriter)
-	crOK &= w.cmprs
+	crOK = crOK && w.cmprs
 	if flusher, ok := w.wr.(flusher); ok && !crOK {
 		err = errors.Wrap(flusher.Flush(), "warc writer: flush")
 		if err != nil {
