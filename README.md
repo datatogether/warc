@@ -32,4 +32,4 @@ We would love involvement from more people! If you notice any errors or would li
 We use GitHub issues for [tracking bugs and feature requests](https://github.com/datatogether/REPONAME/issues) and Pull Requests (PRs) for [submitting changes](https://github.com/datatogether/REPONAME/pulls)
 
 ## Usage
-`import "gitnub.com/datatogether/warc"`
+`import "github.com/datatogether/warc"`
