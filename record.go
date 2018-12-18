@@ -192,6 +192,9 @@ func (r *Record) ContentLength() int {
 }
 
 // Write this record to the given writer.
+//
+// Automatically handles the Content-Length, WARC-Type headers, as well as
+// WARC-Block-Digest for Response and Revisit records.
 func (r *Record) Write(w io.Writer) error {
 	r.Headers[FieldNameContentLength] = strconv.FormatInt(int64(r.Content.Len()), 10)
 	r.Headers[FieldNameWARCType] = r.Type.String()

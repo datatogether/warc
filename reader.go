@@ -7,6 +7,9 @@ import (
 	"compress/gzip"
 	"io"
 	"io/ioutil"
+	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 // Reader parses WARC records from an underlying scanner.
@@ -15,6 +18,7 @@ type Reader struct {
 	rc      io.ReadCloser  // raw io.readerCloser
 	scanner *bufio.Scanner // scanner to pull tokens from
 	phase   scanPhase
+	bodyLen int64
 }
 
 // NewReader creates a new WARC reader from an io.Reader
@@ -79,10 +83,20 @@ func (r *Reader) readRecord() (rec Record, err error) {
 		switch r.phase {
 		case scanPhaseVersion:
 			rec.Format = recordFormat(string(bytes.TrimSpace(token)))
+			if rec.Format == RecordFormatUnknown {
+				return rec, errors.Errorf("Unknown record format: '%s'", string(bytes.TrimSpace(token)))
+			}
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseHeaderKey:
 			if bytes.Equal(token, crlf) {
 				r.phase = scanPhaseContent
+				r.bodyLen = -1
+				r.checkContentLength(&rec)
+
+				rec.Content = bytes.NewBuffer(nil)
+				if r.bodyLen != -1 {
+					rec.Content.Grow(int(r.bodyLen))
+				}
 			} else {
 				key = CanonicalKey(string(token))
 				r.phase = scanPhaseHeaderValue
@@ -94,17 +108,40 @@ func (r *Reader) readRecord() (rec Record, err error) {
 			}
 			r.phase = scanPhaseHeaderKey
 		case scanPhaseContent:
-			// need to copy here b/c the underlying bytes shift as the buffer
-			// moves through the file
-			buf := make([]byte, len(r.scanner.Bytes()))
-			copy(buf, r.scanner.Bytes())
-			rec.Content = bytes.NewBuffer(buf)
-			r.phase = scanPhaseVersion
-			return
+			by := r.scanner.Bytes()
+			bytes.NewReader(by).WriteTo(rec.Content)
+			if len(by) == 0 {
+				r.phase = scanPhaseVersion
+				return
+			} else if r.bodyLen != -1 {
+				r.bodyLen -= int64(len(by))
+			}
 		}
 	}
 
+	if r.scanner.Err() != nil {
+		return rec, r.scanner.Err()
+	}
+	if r.phase != scanPhaseVersion && r.phase != scanPhaseContent {
+		return rec, io.ErrUnexpectedEOF
+	}
 	return rec, io.EOF
+}
+
+func (r *Reader) checkContentLength(rec *Record) error {
+	if rec.Headers[FieldNameWARCSegmentNumber] != "" {
+		// Segmented content
+		return nil
+	}
+	if rec.Headers[FieldNameContentLength] != "" {
+		// Non-segmented, have Content-Length => read the whole thing in one block
+		length, err := strconv.ParseInt(rec.Headers[FieldNameContentLength], 10, 64)
+		if err != nil {
+			return errors.Wrap(err, "warc: Invalid Content-Length")
+		}
+		r.bodyLen = length
+	}
+	return nil
 }
 
 func (r *Reader) split(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -119,6 +156,11 @@ func (r *Reader) split(data []byte, atEOF bool) (advance int, token []byte, err 
 		return splitKey(data, atEOF)
 	case scanPhaseHeaderValue:
 		return splitValue(data, atEOF)
+	case scanPhaseContent:
+		if r.bodyLen != -1 {
+			return splitFull(data, atEOF, r.bodyLen)
+		}
+		fallthrough
 	default: // default to scanPhaseContent
 		return splitBlock(data, atEOF)
 	}
@@ -128,6 +170,13 @@ var crlf = []byte("\r\n")
 var doubleCrlf = []byte("\r\n\r\n")
 
 func splitLine(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if bytes.HasPrefix(data, crlf) {
+		// Found block-end from previous record. Skip.
+		if bytes.HasPrefix(data, doubleCrlf) {
+			return len(doubleCrlf), nil, nil
+		}
+		return len(crlf), nil, nil
+	}
 	if i := bytes.IndexByte(data, '\n'); i >= 0 {
 		// We have a full newline-terminated line.
 		return i + 1, dropCR(data[0:i]), nil
@@ -175,6 +224,20 @@ func splitBlock(data []byte, atEOF bool) (advance int, token []byte, err error) 
 	}
 	// If we're at EOF, we have a final, non-terminated line. Return it.
 	if atEOF {
+		return len(data), data, nil
+	}
+	return 0, nil, nil
+}
+
+func splitFull(data []byte, atEOF bool, bytesLeft int64) (advance int, token []byte, err error) {
+	length := int(bytesLeft)
+	if bytesLeft <= int64(len(data)) {
+		return length, data[:length], nil
+	}
+	if atEOF {
+		return len(data), data, errors.Errorf("warc: unexpected EOF in record content, got %v bytes (expected %v more)", len(data), bytesLeft)
+	}
+	if len(data) > 0 {
 		return len(data), data, nil
 	}
 	return 0, nil, nil

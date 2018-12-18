@@ -17,6 +17,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TimeFormat is time.RFC3339, but with no timezone (just a Z).
+const TimeFormat = "2006-01-02T15:04:05Z"
+
 // CaptureHelper is used for the NewRequestResponseRecords() method. Additional
 // fields may be added in the future.
 type CaptureHelper struct {
@@ -81,7 +84,7 @@ func NewRequestResponseRecords(info CaptureHelper, req *http.Request, resp *http
 	reqRec.Headers.Set(FieldNameWARCRecordID, reqUID)
 	respRec.Headers.Set(FieldNameWARCRecordID, respUID)
 	respRec.Headers.Set(FieldNameWARCConcurrentTo, reqUID)
-	eventStamp := time.Now().Format(time.RFC3339)
+	eventStamp := time.Now().UTC().Format(TimeFormat)
 	reqRec.Headers.Set(FieldNameWARCDate, eventStamp)
 	respRec.Headers.Set(FieldNameWARCDate, eventStamp)
 	u2 := new(url.URL)
