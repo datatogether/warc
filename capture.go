@@ -41,7 +41,7 @@ func (c *CaptureHelper) DialContext(dialer *net.Dialer) func(ctx context.Context
 	}
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		conn, err := dialer.DialContext(ctx, network, addr)
-		if err != nil {
+		if err == nil {
 			c.RemoteAddr = conn.RemoteAddr().String()
 		}
 		return conn, err
